@@ -1,0 +1,16 @@
+{
+  "name": "Calculadora de Precificação Pro",
+  "short_name": "Calculadora",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f43f5e",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3300/3300082.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
