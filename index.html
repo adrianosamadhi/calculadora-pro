@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=5">
+    <link rel="manifest" href="manifest.json?v=6">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,7 +22,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- DADOS DAS TABELAS DO SEU CÓDIGO ---
+        // --- DADOS DAS TABELAS (Extraídos das suas imagens) ---
         const mlRates = {
           "Até 0,3 kg": [5.65, 6.35, 7.75, 12.35, 13.35, 15.45, 16.45, 20.95],
           "De 0,3 a 0,5 kg": [5.95, 6.75, 7.95, 13.25, 15.45, 17.65, 18.85, 23.55],
@@ -77,8 +77,12 @@
           const [embalagem, setEmbalagem] = useState('');
           const [imposto, setImposto] = useState('');
           const [lucroDesejado, setLucroDesejado] = useState('20');
+          
+          // Específicos do ML
           const [taxaMarketplace, setTaxaMarketplace] = useState('14'); 
           const [pesoProduto, setPesoProduto] = useState('De 1 a 1,5 kg'); 
+          const [isPremium, setIsPremium] = useState(false);
+          const [ofereceFreteGratis, setOfereceFreteGratis] = useState(false);
 
           const [resultado, setResultado] = useState(null);
           const [erro, setErro] = useState(null);
@@ -112,7 +116,7 @@
             const lucroPct = parsePercent(lucroDesejado) / 100;
             const taxaMLPct = parsePercent(taxaMarketplace) / 100;
 
-            const basePct = platform === 'ML' ? (impostoPct + lucroPct + taxaMLPct) : (impostoPct + lucroPct + 0.20); 
+            const basePct = platform === 'ML' ? (impostoPct + lucroPct + taxaMLPct + (isPremium ? 0.05 : 0)) : (impostoPct + lucroPct + 0.20); 
             if (basePct >= 1) {
               setErro("A soma das porcentagens (Imposto + Lucro + Comissão) é maior ou igual a 100%. Impossível calcular.");
               return;
@@ -126,53 +130,64 @@
             let melhorPreco = null;
             let detalhesCalculo = null;
 
+            // Busca do Preço Ideal
             for (let p = custo + emb; p <= 15000; p += 0.01) {
               let comissaoVenda = 0;
-              let custoFixoFrete = 0;
+              let taxaFixaPlataforma = 0;
+              let freteVendedor = 0;
               let comissaoPctReal = 0;
+              let nomeFaixa = "";
 
               if (platform === 'SHOPEE') {
                 if (p <= 79.99) {
                   comissaoPctReal = 0.20;
-                  custoFixoFrete = 4;
+                  taxaFixaPlataforma = 4;
                 } else if (p <= 99.99) {
                   comissaoPctReal = 0.14;
-                  custoFixoFrete = 16;
+                  taxaFixaPlataforma = 16;
                 } else if (p <= 199.99) {
                   comissaoPctReal = 0.14;
-                  custoFixoFrete = 20;
+                  taxaFixaPlataforma = 20;
                 } else {
                   comissaoPctReal = 0.14;
-                  custoFixoFrete = 26;
+                  taxaFixaPlataforma = 26;
                 }
                 comissaoVenda = p * comissaoPctReal;
               } 
               else if (platform === 'ML') {
-                comissaoPctReal = taxaMLPct;
+                // Se for Premium, soma 5% na comissão base digitada
+                comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
+                // Pega o custo do frete na tabela baseado no peso e no preço
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
-                custoFixoFrete = mlRates[pesoProduto][tierIdx];
+                let valorFreteTabela = mlRates[pesoProduto][tierIdx];
+                nomeFaixa = mlTierNames[tierIdx];
+
+                // REGRAS OFICIAIS DE FRETE DO ML
+                if (p < 79) {
+                    taxaFixaPlataforma = 6.75; // Taxa fixa obrigatória abaixo de 79
+                    if (ofereceFreteGratis) {
+                        freteVendedor = valorFreteTabela; // Vendedor assumiu o frete
+                    }
+                } else {
+                    taxaFixaPlataforma = 0; // Acima de 79 a taxa some
+                    freteVendedor = valorFreteTabela; // Frete grátis passa a ser obrigatório
+                }
               }
 
               const valorImposto = p * impostoPct;
-              const custosTotais = custo + emb + custoFixoFrete + comissaoVenda + valorImposto;
+              const custosTotais = custo + emb + taxaFixaPlataforma + freteVendedor + comissaoVenda + valorImposto;
               const lucroAtual = p - custosTotais;
               const lucroAtualPct = lucroAtual / p;
 
               if (lucroAtualPct >= lucroPct) {
                 melhorPreco = p;
-                let nomeFaixa = "";
-                if (platform === 'ML') {
-                    let tierIdx = mlPriceTiers.findIndex(t => p <= t);
-                    if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
-                    nomeFaixa = mlTierNames[tierIdx];
-                }
-
                 detalhesCalculo = {
                   custoBase: custo + emb,
-                  freteTaxa: custoFixoFrete,
+                  freteTaxa: freteVendedor,
+                  taxaFixa: taxaFixaPlataforma,
                   comissaoVenda,
                   valorImposto,
                   lucroLiq: lucroAtual,
@@ -187,14 +202,14 @@
             if (melhorPreco) {
               setResultado({ precoSugerido: melhorPreco, ...detalhesCalculo });
             } else {
-              setErro("Não foi possível encontrar um preço viável (limite de R$ 15.000 atingido). Verifique as taxas.");
+              setErro("Não foi possível encontrar um preço viável. Verifique as margens.");
             }
           };
 
           useEffect(() => {
             setResultado(null);
             setErro(null);
-          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoProduto]);
+          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoProduto, isPremium, ofereceFreteGratis]);
 
           const theme = {
             label: `text-sm font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`,
@@ -246,7 +261,7 @@
               );
           }
 
-          // TELA DA CALCULADORA (SEU CÓDIGO TRADUZIDO)
+          // TELA DA CALCULADORA (SEU VISUAL ORIGINAL)
           return (
             <div className={`min-h-screen py-10 px-4 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
               <div className="max-w-4xl mx-auto relative">
@@ -335,7 +350,7 @@
                       <div className="space-y-2">
                         <label className={`${theme.label} flex justify-between`}>
                           <span>Imposto sobre a Venda</span>
-                          <span className={`text-xs font-normal mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>(MEI = 0)</span>
+                          <span className={`text-xs font-normal mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>(MEI = deixe 0)</span>
                         </label>
                         <div className="relative">
                           <input type="text" value={imposto} onChange={handlePercentChange(setImposto)} placeholder="0" className={`${theme.input} pl-4 pr-11`} />
@@ -355,10 +370,27 @@
                         </div>
                       </div>
 
+                      {/* Configurações Específicas do ML */}
                       {platform === 'ML' && (
                         <>
+                          <div className="md:col-span-2 flex flex-wrap gap-x-8 gap-y-4 my-2 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                              <input type="checkbox" checked={isPremium} onChange={(e) => setIsPremium(e.target.checked)} className="w-5 h-5 accent-orange-500 rounded cursor-pointer" />
+                              <span className={`text-sm font-semibold transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                Anúncio Premium <span className="text-xs opacity-60 font-normal block">(Adiciona 5% na comissão)</span>
+                              </span>
+                            </label>
+
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                              <input type="checkbox" checked={ofereceFreteGratis} onChange={(e) => setOfereceFreteGratis(e.target.checked)} className="w-5 h-5 accent-orange-500 rounded cursor-pointer" />
+                              <span className={`text-sm font-semibold transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                Oferecer Frete Grátis <span className="text-xs opacity-60 font-normal block">(Opcional se produto < R$ 79)</span>
+                              </span>
+                            </label>
+                          </div>
+
                           <div className="space-y-2">
-                            <label className={theme.label}>Taxa da Categoria</label>
+                            <label className={theme.label}>Taxa da Categoria (Clássico)</label>
                             <div className="relative">
                               <input type="text" value={taxaMarketplace} onChange={handlePercentChange(setTaxaMarketplace)} placeholder="14" className={`${theme.input} pl-4 pr-11`} />
                               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -399,11 +431,17 @@
                           </div>
 
                           <p className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-sm">Sua Sugestão de</p>
-                          <h2 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300 mb-8">
+                          <h2 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300 mb-2">
                             R$ {resultado.precoSugerido.toFixed(2).replace('.', ',')}
                           </h2>
+                          {resultado.precoSugerido >= 79 && platform === 'ML' && (
+                              <p className="text-green-400 text-sm font-bold mb-6">✓ Frete Grátis Obrigatório Ativado</p>
+                          )}
+                          {resultado.precoSugerido < 79 && platform === 'ML' && (
+                              <p className="text-slate-400 text-sm mb-6">Frete por conta do comprador (Abaixo de R$ 79)</p>
+                          )}
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm md:text-base">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm md:text-base mt-4">
                             
                             <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
                               <span className="text-slate-400">Custo + Embalagem:</span>
@@ -413,11 +451,18 @@
                             <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
                               <span className="text-slate-400">
                                 {platform === 'ML' ? (
-                                  <>Frete Fixo <span className="text-xs text-slate-500">({resultado.faixaAplicada})</span>:</>
+                                  <>Custo do Frete <span className="text-xs text-slate-500">({resultado.faixaAplicada})</span>:</>
                                 ) : 'Taxa Fixa (Shopee):'}
                               </span>
                               <span className="font-semibold text-red-400">- R$ {resultado.freteTaxa.toFixed(2).replace('.', ',')}</span>
                             </div>
+
+                            {platform === 'ML' && resultado.taxaFixa > 0 && (
+                                <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
+                                  <span className="text-slate-400">Taxa Fixa (Abaixo R$ 79):</span>
+                                  <span className="font-semibold text-red-400">- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                            )}
 
                             <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
                               <span className="text-slate-400">Comissão ({resultado.margemUsada.toFixed(0)}%):</span>
@@ -435,8 +480,8 @@
                             <h3 className="text-slate-300 font-bold uppercase tracking-wide text-xs mb-4">Composição do Preço</h3>
                             <div className="space-y-3 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-slate-400">Custos Fixos (Produto + Emb + Frete)</span>
-                                <span className="font-semibold text-slate-200">R$ {(resultado.custoBase + resultado.freteTaxa).toFixed(2).replace('.', ',')}</span>
+                                <span className="text-slate-400">Custos Fixos (Produto + Emb + Frete + Taxa Fixa)</span>
+                                <span className="font-semibold text-slate-200">R$ {(resultado.custoBase + resultado.freteTaxa + resultado.taxaFixa).toFixed(2).replace('.', ',')}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-slate-400">Taxa do Marketplace</span>
