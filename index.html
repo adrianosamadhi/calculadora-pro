@@ -1,637 +1,346 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
-    <link rel="icon" href="icone-192.png" type="image/png">
-    <link rel="manifest" href="manifest.json?v=2">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Precificação Pro - Adriano Santos</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' };
-    </script>
-    
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    <title>Calculadora de Precificação Master</title>
     <style>
-        body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: #374151; }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        :root {
+            --primary: #007bff;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --success: #28a745;
+            --danger: #dc3545;
         }
-        .animate-fade-in {
-          animation: fadeIn 0.4s ease-out forwards;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            background: #e9ecef;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .toggle-group label {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-group input[type="radio"] {
+            display: none;
+        }
+        .toggle-group input[type="radio"]:checked + label {
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background: #eaf4ff;
+            border-radius: 8px;
+            border: 1px solid #cce5ff;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .result-row.total {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--success);
+            border-top: 2px solid #b8daff;
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+        .negative {
+            color: var(--danger) !important;
+        }
+        .btn-copiar {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .btn-copiar:hover {
+            background-color: #0056b3;
+        }
+        .btn-copiar.copiado {
+            background-color: var(--success);
         }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-    <div id="root"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+<div class="container">
+    <h2>Precificação Universal</h2>
 
-        // ==========================================
-        // CONFIGURAÇÕES DO SUPABASE
-        // ==========================================
-        const supabaseUrl = 'https://pttckajgbilxtlvhrdsm.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0dGNrYWpnYmlseHRsdmhyZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzkyMDYsImV4cCI6MjA4NzcxNTIwNn0.8buGbTrL0_nsFW9B0JPf_PyFeYbvAbe2UjMISpdQ6Os';
+    <div class="form-group">
+        <label>Preço de Venda (R$)</label>
+        <input type="number" id="precoVenda" placeholder="Ex: 89.90" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label>Custo do Produto (R$)</label>
+        <input type="number" id="custoProduto" placeholder="Ex: 35.00" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label>Custo de Embalagem (R$)</label>
+        <input type="number" id="custoEmbalagem" placeholder="Ex: 2.50" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label>Custos Extras / Brindes (R$)</label>
+        <input type="number" id="custoExtra" placeholder="Ex: 1.00" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label>Tipo de Anúncio</label>
+        <div class="toggle-group">
+            <input type="radio" name="tipoAnuncio" id="classico" value="11.5" checked>
+            <label for="classico">Clássico (~11.5%)</label>
+            <input type="radio" name="tipoAnuncio" id="premium" value="16.5">
+            <label for="premium">Premium (~16.5%)</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Configuração de Frete</label>
+        <div class="checkbox-group">
+            <input type="checkbox" id="freteGratis">
+            <label for="freteGratis" style="margin:0;">Oferecer Frete Grátis</label>
+        </div>
+    </div>
+
+    <div class="form-group hidden" id="divCustoFrete">
+        <label>Custo do Frete cobrado pelo ML (R$)</label>
+        <input type="number" id="custoFrete" placeholder="Ex: 18.90" step="0.01">
+    </div>
+
+    <div class="form-group">
+        <label>Imposto / Tributação</label>
+        <div class="toggle-group">
+            <input type="radio" name="regimeTributario" id="mei" value="0" checked>
+            <label for="mei">MEI (0%)</label>
+            <input type="radio" name="regimeTributario" id="personalizado" value="personalizado">
+            <label for="personalizado">Personalizado (%)</label>
+        </div>
+    </div>
+
+    <div class="form-group hidden" id="divTaxaPersonalizada">
+        <label>Porcentagem de Imposto (Simples, ST, etc)</label>
+        <input type="number" id="taxaPersonalizada" placeholder="Ex: 6.5" step="0.1">
+    </div>
+
+    <div class="results">
+        <div class="result-row">
+            <span>Tarifa ML (Anúncio):</span>
+            <span id="resTarifaML">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Custo Fixo (Abaixo de R$ 79):</span>
+            <span id="resTaxaFixa">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Despesas Adicionais:</span>
+            <span id="resDespesasExtras">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Custo de Frete:</span>
+            <span id="resCustoFrete">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Imposto:</span>
+            <span id="resImposto">R$ 0,00</span>
+        </div>
+        <div class="result-row total">
+            <span>Lucro Líquido:</span>
+            <span id="resLucro">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Margem de Lucro:</span>
+            <span id="resMargem">0%</span>
+        </div>
+    </div>
+
+    <button id="btnCopiar" class="btn-copiar">Copiar Resumo</button>
+
+</div>
+
+<script>
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => input.addEventListener('input', calcular));
+    inputs.forEach(input => input.addEventListener('change', calcular));
+
+    const freteGratisCheckbox = document.getElementById('freteGratis');
+    const divCustoFrete = document.getElementById('divCustoFrete');
+    
+    freteGratisCheckbox.addEventListener('change', (e) => {
+        divCustoFrete.classList.toggle('hidden', !e.target.checked);
+    });
+
+    const radioPersonalizado = document.getElementById('personalizado');
+    const radioMei = document.getElementById('mei');
+    const divTaxaPersonalizada = document.getElementById('divTaxaPersonalizada');
+
+    [radioPersonalizado, radioMei].forEach(radio => {
+        radio.addEventListener('change', () => {
+            divTaxaPersonalizada.classList.toggle('hidden', !radioPersonalizado.checked);
+        });
+    });
+
+    function calcular() {
+        const precoVenda = parseFloat(document.getElementById('precoVenda').value) || 0;
+        const custoProduto = parseFloat(document.getElementById('custoProduto').value) || 0;
+        const custoEmbalagem = parseFloat(document.getElementById('custoEmbalagem').value) || 0;
+        const custoExtra = parseFloat(document.getElementById('custoExtra').value) || 0;
         
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const taxaAnuncioPct = parseFloat(document.querySelector('input[name="tipoAnuncio"]:checked').value);
+        let tarifaML = precoVenda * (taxaAnuncioPct / 100);
 
-        // ==========================================
-        // LÓGICA DE FRETE COM PRECISÃO CIRÚRGICA (MARÇO/2026)
-        // ==========================================
-       const calcularFreteML = (preco, peso) => {
-            const p = Number(preco);
-            const w = Number(peso);
-            let tabela;
+        const freteGratis = freteGratisCheckbox.checked;
+        let custoFrete = parseFloat(document.getElementById('custoFrete').value) || 0;
+        
+        let taxaFixa = 0;
+        let freteFinalDescontado = 0;
 
-            // Baseado na Tabela Oficial Nova (1 a 2kg unificados)
-            if (p < 79) {
-                tabela = [{ max: 0.3, valor: 39.90 }, { max: 0.5, valor: 42.90 }, { max: 1, valor: 44.90 }, { max: 2, valor: 46.90 }, { max: 3, valor: 49.90 }, { max: 4, valor: 53.90 }, { max: 5, valor: 56.90 }, { max: 9, valor: 88.90 }, { max: 13, valor: 131.90 }, { max: 17, valor: 146.90 }, { max: 23, valor: 171.90 }, { max: 30, valor: 197.90 }, { max: 40, valor: 203.90 }, { max: 50, valor: 210.90 }, { max: 60, valor: 224.90 }, { max: 70, valor: 240.90 }, { max: 80, valor: 251.90 }, { max: 90, valor: 279.90 }, { max: 100, valor: 319.90 }, { max: 125, valor: 357.90 }, { max: 150, valor: 379.90 }, { max: Infinity, valor: 498.90 }];
-            } else if (p < 100) {
-                tabela = [{ max: 0.3, valor: 11.97 }, { max: 0.5, valor: 12.87 }, { max: 1, valor: 13.47 }, { max: 2, valor: 14.07 }, { max: 3, valor: 14.97 }, { max: 4, valor: 16.17 }, { max: 5, valor: 17.07 }, { max: 9, valor: 26.67 }, { max: 13, valor: 39.57 }, { max: 17, valor: 44.07 }, { max: 23, valor: 51.57 }, { max: 30, valor: 59.37 }, { max: 40, valor: 61.17 }, { max: 50, valor: 63.27 }, { max: 60, valor: 67.47 }, { max: 70, valor: 72.27 }, { max: 80, valor: 75.57 }, { max: 90, valor: 83.97 }, { max: 100, valor: 95.97 }, { max: 125, valor: 107.37 }, { max: 150, valor: 113.97 }, { max: Infinity, valor: 149.67 }];
-            } else if (p < 120) {
-                tabela = [{ max: 0.3, valor: 13.97 }, { max: 0.5, valor: 15.02 }, { max: 1, valor: 15.72 }, { max: 2, valor: 16.42 }, { max: 3, valor: 17.47 }, { max: 4, valor: 18.87 }, { max: 5, valor: 19.92 }, { max: 9, valor: 31.12 }, { max: 13, valor: 46.17 }, { max: 17, valor: 51.42 }, { max: 23, valor: 60.17 }, { max: 30, valor: 69.27 }, { max: 40, valor: 71.37 }, { max: 50, valor: 73.82 }, { max: 60, valor: 78.72 }, { max: 70, valor: 84.32 }, { max: 80, valor: 88.17 }, { max: 90, valor: 97.97 }, { max: 100, valor: 111.97 }, { max: 125, valor: 125.27 }, { max: 150, valor: 132.97 }, { max: Infinity, valor: 174.62 }];
-            } else if (p < 150) {
-                tabela = [{ max: 0.3, valor: 15.96 }, { max: 0.5, valor: 17.16 }, { max: 1, valor: 17.96 }, { max: 2, valor: 18.76 }, { max: 3, valor: 19.96 }, { max: 4, valor: 21.56 }, { max: 5, valor: 22.76 }, { max: 9, valor: 35.56 }, { max: 13, valor: 52.76 }, { max: 17, valor: 58.76 }, { max: 23, valor: 68.76 }, { max: 30, valor: 79.16 }, { max: 40, valor: 81.56 }, { max: 50, valor: 84.36 }, { max: 60, valor: 89.96 }, { max: 70, valor: 96.36 }, { max: 80, valor: 100.76 }, { max: 90, valor: 111.96 }, { max: 100, valor: 127.96 }, { max: 125, valor: 143.16 }, { max: 150, valor: 151.96 }, { max: Infinity, valor: 199.56 }];
-            } else if (p < 200) {
-                tabela = [{ max: 0.3, valor: 17.96 }, { max: 0.5, valor: 19.31 }, { max: 1, valor: 20.21 }, { max: 2, valor: 21.11 }, { max: 3, valor: 22.46 }, { max: 4, valor: 24.26 }, { max: 5, valor: 25.61 }, { max: 9, valor: 40.01 }, { max: 13, valor: 59.36 }, { max: 17, valor: 66.11 }, { max: 23, valor: 77.36 }, { max: 30, valor: 89.06 }, { max: 40, valor: 91.76 }, { max: 50, valor: 94.91 }, { max: 60, valor: 101.21 }, { max: 70, valor: 108.41 }, { max: 80, valor: 113.36 }, { max: 90, valor: 125.96 }, { max: 100, valor: 143.96 }, { max: 125, valor: 161.06 }, { max: 150, valor: 170.96 }, { max: Infinity, valor: 224.51 }];
-            } else {
-                tabela = [{ max: 0.3, valor: 19.95 }, { max: 0.5, valor: 21.45 }, { max: 1, valor: 22.45 }, { max: 2, valor: 23.45 }, { max: 3, valor: 24.95 }, { max: 4, valor: 26.95 }, { max: 5, valor: 28.45 }, { max: 9, valor: 44.45 }, { max: 13, valor: 65.95 }, { max: 17, valor: 73.45 }, { max: 23, valor: 85.95 }, { max: 30, valor: 98.95 }, { max: 40, valor: 101.95 }, { max: 50, valor: 105.45 }, { max: 60, valor: 112.45 }, { max: 70, valor: 120.45 }, { max: 80, valor: 125.95 }, { max: 90, valor: 139.95 }, { max: 100, valor: 159.95 }, { max: 125, valor: 178.95 }, { max: 150, valor: 189.95 }, { max: Infinity, valor: 249.45 }];
+        if (precoVenda > 0 && precoVenda < 79) {
+            taxaFixa = 6.75; 
+            if (freteGratis) {
+                freteFinalDescontado = custoFrete; 
             }
-
-            const faixa = tabela.find(f => w <= f.max);
-            return faixa ? faixa.valor : 0;
-        };
-
-      
-        const formatCurrency = (value) => {
-          if (!value) return "0,00";
-          const numericValue = value.replace(/\D/g, "");
-          const floatValue = (Number(numericValue) / 100).toFixed(2);
-          return floatValue.replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        };
-
-        const parseCurrency = (val) => Number(val.replace(/\./g, '').replace(',', '.')) || 0;
-        const parsePercent = (val) => Number(val.replace(',', '.')) || 0;
-
-        function App() {
-          const [isLoggedIn, setIsLoggedIn] = useState(false);
-          const [email, setEmail] = useState('');
-          const [password, setPassword] = useState('');
-          const [authError, setAuthError] = useState('');
-          const [isLoading, setIsLoading] = useState(false);
-          const [isCheckingSession, setIsCheckingSession] = useState(true);
-
-          const [isDarkMode, setIsDarkMode] = useState(true);
-          const [platform, setPlatform] = useState('ML');
-          const [custoProduto, setCustoProduto] = useState('');
-          const [embalagem, setEmbalagem] = useState('');
-          const [imposto, setImposto] = useState('');
-          const [lucroDesejado, setLucroDesejado] = useState('20');
-          const [taxaMarketplace, setTaxaMarketplace] = useState('14');
-          const [pesoProduto, setPesoProduto] = useState('1.5');
-          const [resultado, setResultado] = useState(null);
-          const [erro, setErro] = useState(null);
-
-          useEffect(() => {
-              if (isDarkMode) {
-                  document.documentElement.classList.add('dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-              }
-          }, [isDarkMode]);
-
-          useEffect(() => {
-            supabase.auth.getSession().then(({ data: { session } }) => {
-              setIsLoggedIn(!!session);
-              setIsCheckingSession(false);
-            });
-
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-              setIsLoggedIn(!!session);
-            });
-
-            return () => subscription.unsubscribe();
-          }, []);
-
-          const handleLogin = async (e) => {
-            e.preventDefault();
-            setIsLoading(true);
-            setAuthError('');
-            
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email: email,
-              password: password,
-            });
-
-            if (error) {
-              setAuthError('E-mail ou senha incorretos. Acesso negado.');
-            } else {
-              setIsLoggedIn(true);
-              setAuthError('');
+        } else if (precoVenda >= 79) {
+            if (freteGratis) {
+                freteFinalDescontado = custoFrete;
             }
-            setIsLoading(false);
-          };
-
-          const handleLogout = async () => {
-            await supabase.auth.signOut();
-            setIsLoggedIn(false);
-            setResultado(null);
-            setEmail('');
-            setPassword('');
-          };
-
-          const handleCurrencyChange = (setter) => (e) => setter(formatCurrency(e.target.value));
-          const handlePercentChange = (setter) => (e) => setter(e.target.value.replace(/[^0-9,]/g, ''));
-
-          const calcular = () => {
-            setErro(null);
-            setResultado(null);
-
-            const custo = parseCurrency(custoProduto);
-            const emb = parseCurrency(embalagem);
-            const impostoPct = parsePercent(imposto) / 100;
-            const lucroPct = parsePercent(lucroDesejado) / 100;
-            const taxaMLPct = parsePercent(taxaMarketplace) / 100;
-
-            const basePct = platform === 'ML' ? (impostoPct + lucroPct + taxaMLPct) : (impostoPct + lucroPct + 0.20); 
-            if (basePct >= 1) {
-              setErro("A soma das porcentagens (Imposto + Lucro + Comissão) é maior ou igual a 100%. Impossível calcular.");
-              return;
-            }
-
-            if (custo === 0) {
-              setErro("Por favor, insira o Custo do Produto.");
-              return;
-            }
-
-            let melhorPreco = null;
-            let detalhesCalculo = null;
-
-            for (let p = custo + emb; p <= 15000; p += 0.01) {
-              let comissaoVenda = 0;
-              let custoFixoFrete = 0;
-              let comissaoPctReal = 0;
-
-              if (platform === 'SHOPEE') {
-                if (p <= 79.99) { comissaoPctReal = 0.20; custoFixoFrete = 4; } 
-                else if (p <= 99.99) { comissaoPctReal = 0.14; custoFixoFrete = 16; } 
-                else if (p <= 199.99) { comissaoPctReal = 0.14; custoFixoFrete = 20; } 
-                else { comissaoPctReal = 0.14; custoFixoFrete = 26; }
-                comissaoVenda = p * comissaoPctReal;
-              } 
-              else if (platform === 'ML') {
-                comissaoPctReal = taxaMLPct;
-                comissaoVenda = p * comissaoPctReal;
-                custoFixoFrete = calcularFreteML(p, pesoProduto);
-              }
-
-              const valorImposto = p * impostoPct;
-              const custosTotais = custo + emb + custoFixoFrete + comissaoVenda + valorImposto;
-              const lucroAtual = p - custosTotais;
-              const lucroAtualPct = lucroAtual / p;
-
-              if (lucroAtualPct >= lucroPct) {
-                melhorPreco = p;
-                let nomeFaixa = "";
-                if (platform === 'ML') {
-                    nomeFaixa = `Peso: ${pesoProduto} kg`;
-                }
-
-                detalhesCalculo = {
-                  custoBase: custo + emb,
-                  freteTaxa: custoFixoFrete,
-                  comissaoVenda,
-                  valorImposto,
-                  lucroLiq: lucroAtual,
-                  lucroLiqPct: lucroAtualPct * 100,
-                  margemUsada: comissaoPctReal * 100,
-                  faixaAplicada: nomeFaixa
-                };
-                break;
-              }
-            }
-
-            if (melhorPreco) {
-              setResultado({ precoSugerido: melhorPreco, ...detalhesCalculo });
-            } else {
-              setErro("Não foi possível encontrar um preço viável. Verifique as taxas.");
-            }
-          };
-
-          useEffect(() => {
-            setResultado(null);
-            setErro(null);
-          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoProduto]);
-
-          const theme = {
-            label: `text-sm font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`,
-            icon: isDarkMode ? "text-slate-500" : "text-slate-400",
-            input: `w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg ${isDarkMode ? 'bg-slate-950 border-slate-700 text-white placeholder-slate-600' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400'}`,
-            lucroLabel: "text-sm font-bold uppercase tracking-wide text-orange-500",
-            lucroInput: `w-full pl-4 pr-11 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-bold text-lg ${isDarkMode ? 'bg-orange-500/10 border-orange-500/30 text-orange-400 placeholder-orange-700/50' : 'bg-orange-50 border-orange-200 text-orange-700 placeholder-orange-300'}`,
-            error: `mt-6 p-4 rounded-xl flex items-center gap-3 font-medium border ${isDarkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'}`,
-            resultCard: `rounded-2xl p-6 md:p-8 text-white shadow-inner relative overflow-hidden border ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700'}`,
-            resultItemBorder: isDarkMode ? 'border-slate-800' : 'border-slate-700',
-            composicaoBg: `mt-6 p-5 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-800/50 border-slate-700'}`,
-          };
-
-          if (isCheckingSession) {
-            return (
-              <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-                 <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                 <p className="mt-4 text-slate-400">Verificando segurança...</p>
-              </div>
-            );
-          }
-
-          if (!isLoggedIn) {
-            return (
-              <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-500/20 blur-[100px] rounded-full pointer-events-none"></div>
-                
-                <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-fade-in">
-                  <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-rose-500 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30">
-                      <i className="ph-fill ph-lock-key text-white text-3xl"></i>
-                    </div>
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 mb-2">
-                      Acesso Exclusivo
-                    </h1>
-                    <p className="text-slate-400 text-sm">Faça login para usar a Calculadora de Precificação Pro.</p>
-                  </div>
-
-                  <form onSubmit={handleLogin} className="space-y-5">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-400">E-mail</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <i className="ph ph-envelope-simple text-slate-500 text-lg"></i>
-                        </div>
-                        <input 
-                          type="email" 
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="seu@email.com"
-                          className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Senha</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <i className="ph ph-key text-slate-500 text-lg"></i>
-                        </div>
-                        <input 
-                          type="password" 
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    {authError && (
-                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
-                        <i className="ph-fill ph-warning-circle text-lg shrink-0"></i> 
-                        <span>{authError}</span>
-                      </div>
-                    )}
-
-                    <button 
-                      type="submit" 
-                      disabled={isLoading}
-                      className="w-full py-3.5 mt-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-all active:scale-95 disabled:opacity-70"
-                    >
-                      {isLoading ? <span className="animate-pulse">Autenticando no Servidor...</span> : <><i className="ph ph-sign-in text-xl"></i> Entrar no Sistema</>}
-                    </button>
-                  </form>
-                    <p className="text-center mt-4 text-sm text-slate-400">
-  Primeiro acesso? Use a senha padrão: <strong className="text-white">Calculadora@123</strong>
-</p>
-
-                  <p className="text-center mt-6 text-xs text-slate-500">
-                    Ainda não tem acesso? <a href="https://pay.kiwify.com.br/XXQHQX0" className="text-orange-400 hover:text-orange-300 font-bold underline">Adquira sua licença aqui</a>.
-                  </p>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div className={`min-h-screen py-10 px-4 font-sans transition-colors duration-300 animate-fade-in ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
-              <div className="max-w-4xl mx-auto relative">
-                
-                <div className="absolute top-0 right-0 md:-mt-4 flex gap-3">
-                  <button
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className={`p-3 rounded-full transition-all duration-300 shadow-lg flex items-center justify-center ${
-                      isDarkMode ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-white text-slate-500 hover:bg-slate-50'
-                    }`}
-                    title="Mudar Tema"
-                  >
-                    {isDarkMode ? <i className="ph-fill ph-sun text-xl"></i> : <i className="ph-fill ph-moon text-xl"></i>}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className={`p-3 rounded-full transition-all duration-300 shadow-lg flex items-center justify-center ${
-                      isDarkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-white text-red-500 hover:bg-red-50'
-                    }`}
-                    title="Sair do Sistema"
-                  >
-                    <i className="ph-fill ph-lock-key text-xl"></i>
-                  </button>
-                </div>
-
-                <div className="text-center mb-10 pt-16 md:pt-0">
-                  <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400 mb-2">
-                    Calculadora de Precificação
-                  </h1>
-                  <p className={`text-lg font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Acesso Autorizado • Bem-vindo</p>
-                </div>
-
-                <div className={`rounded-3xl shadow-2xl overflow-hidden border transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-                  
-                  <div className="flex w-full">
-                    <button
-                      onClick={() => setPlatform('ML')}
-                      className={`flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 ${
-                        platform === 'ML' 
-                        ? 'bg-yellow-400 text-yellow-950 border-b-4 border-yellow-600' 
-                        : isDarkMode 
-                          ? 'bg-slate-950 text-slate-500 hover:bg-slate-800 hover:text-slate-300'
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                      }`}
-                    >
-                      <i className="ph ph-tote text-2xl"></i> Mercado Livre
-                    </button>
-                    <button
-                      onClick={() => setPlatform('SHOPEE')}
-                      className={`flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 ${
-                        platform === 'SHOPEE' 
-                        ? 'bg-orange-500 text-white border-b-4 border-orange-700' 
-                        : isDarkMode 
-                          ? 'bg-slate-950 text-slate-500 hover:bg-slate-800 hover:text-slate-300'
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                      }`}
-                    >
-                      <i className="ph ph-tote text-2xl"></i> Shopee
-                    </button>
-                  </div>
-
-                  <div className="p-6 md:p-10">
-                    
-                    <div className={`mb-8 p-4 rounded-xl flex items-start gap-3 border transition-colors ${
-                      platform === 'ML' 
-                        ? isDarkMode ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-200' : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                        : isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-200' : 'bg-orange-50 border-orange-200 text-orange-800'
-                    }`}>
-                      <i className="ph-fill ph-info shrink-0 mt-0.5 text-xl"></i>
-                      <p className="text-sm md:text-base leading-relaxed">
-                        <strong>Automação Ativa:</strong> A tabela oficial do {platform === 'ML' ? 'Mercado Livre' : 'Shopee'} já está embutida. Preencha os custos e nós encontraremos exatamente o valor final para você ter o lucro desejado, sem precisar adivinhar!
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      
-                      <div className="space-y-2">
-                        <label className={theme.label}>Custo do Produto (R$)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i className={`ph ph-currency-dollar text-lg ${theme.icon}`}></i>
-                          </div>
-                          <input 
-                            type="text" 
-                            value={custoProduto}
-                            onChange={handleCurrencyChange(setCustoProduto)}
-                            placeholder="0,00"
-                            className={`${theme.input} pl-11 pr-4`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className={theme.label}>Embalagem/Outros (R$)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i className={`ph ph-package text-lg ${theme.icon}`}></i>
-                          </div>
-                          <input 
-                            type="text" 
-                            value={embalagem}
-                            onChange={handleCurrencyChange(setEmbalagem)}
-                            placeholder="0,00"
-                            className={`${theme.input} pl-11 pr-4`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className={`${theme.label} flex justify-between`}>
-                          <span>Imposto sobre a Venda</span>
-                          <span className={`text-xs font-normal mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>(MEI = 0)</span>
-                        </label>
-                        <div className="relative">
-                          <input 
-                            type="text" 
-                            value={imposto}
-                            onChange={handlePercentChange(setImposto)}
-                            placeholder="0"
-                            className={`${theme.input} pl-4 pr-11`}
-                          />
-                          <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <i className={`ph ph-percent text-lg ${theme.icon}`}></i>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className={theme.lucroLabel}>Lucro Líquido Desejado</label>
-                        <div className="relative">
-                          <input 
-                            type="text" 
-                            value={lucroDesejado}
-                            onChange={handlePercentChange(setLucroDesejado)}
-                            placeholder="20"
-                            className={theme.lucroInput}
-                          />
-                          <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <i className="ph ph-percent text-lg text-orange-500"></i>
-                          </div>
-                        </div>
-                      </div>
-
-                      {platform === 'ML' && (
-                        <>
-                          <div className="space-y-2">
-                            <label className={theme.label}>Taxa da Categoria</label>
-                            <div className="relative">
-                              <input 
-                                type="text" 
-                                value={taxaMarketplace}
-                                onChange={handlePercentChange(setTaxaMarketplace)}
-                                placeholder="14"
-                                className={`${theme.input} pl-4 pr-11`}
-                              />
-                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                <i className={`ph ph-percent text-lg ${theme.icon}`}></i>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className={theme.label}>Peso do Produto (kg)</label>
-                            <input 
-                              type="number"
-                              step="0.1"
-                              value={pesoProduto}
-                              onChange={(e) => setPesoProduto(e.target.value)}
-                              placeholder="Ex: 1.5"
-                              className={`${theme.input} px-4`}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                    </div>
-
-                    {erro && (
-                      <div className={theme.error}>
-                        <i className="ph-fill ph-warning-circle text-xl"></i>
-                        {erro}
-                      </div>
-                    )}
-
-                    <button 
-                      onClick={calcular}
-                      className="mt-8 w-full py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold text-xl shadow-lg shadow-orange-500/20 transform transition-all active:scale-95 flex justify-center items-center gap-2"
-                    >
-                      <i className="ph ph-calculator text-2xl"></i>
-                      CALCULAR PREÇO IDEAL
-                    </button>
-
-                    {resultado && (
-                      <div className="mt-10 animate-fade-in">
-                        <div className={theme.resultCard}>
-                          
-                          <div className="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 rounded-bl-xl font-bold text-sm flex items-center gap-1">
-                            <i className="ph-fill ph-check-circle text-lg"></i> Precificação Segura
-                          </div>
-
-                          <p className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-sm">Sua Sugestão de</p>
-                          <h2 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300 mb-8">
-                            R$ {resultado.precoSugerido.toFixed(2).replace('.', ',')}
-                          </h2>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm md:text-base">
-                            
-                            <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
-                              <span className="text-slate-400">Custo + Embalagem:</span>
-                              <span className="font-semibold text-slate-200">R$ {resultado.custoBase.toFixed(2).replace('.', ',')}</span>
-                            </div>
-                            
-                            <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
-                              <span className="text-slate-400">
-                                {platform === 'ML' ? (
-                                  <>Frete Fixo <span className="text-xs text-slate-500">({resultado.faixaAplicada})</span>:</>
-                                ) : 'Taxa Fixa (Shopee):'}
-                              </span>
-                              <span className="font-semibold text-red-400">- R$ {resultado.freteTaxa.toFixed(2).replace('.', ',')}</span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
-                              <span className="text-slate-400">Comissão ({resultado.margemUsada.toFixed(0)}%):</span>
-                              <span className="font-semibold text-red-400">- R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span>
-                            </div>
-
-                            <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
-                              <span className="text-slate-400">Impostos:</span>
-                              <span className="font-semibold text-red-400">- R$ {resultado.valorImposto.toFixed(2).replace('.', ',')}</span>
-                            </div>
-
-                          </div>
-
-                          <div className={theme.composicaoBg}>
-                            <h3 className="text-slate-300 font-bold uppercase tracking-wide text-xs mb-4">Composição do Preço</h3>
-                            <div className="space-y-3 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Custos Fixos (Produto + Emb + Frete)</span>
-                                <span className="font-semibold text-slate-200">R$ {(resultado.custoBase + resultado.freteTaxa).toFixed(2).replace('.', ',')}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Taxa do Marketplace</span>
-                                <span className="font-semibold text-slate-200">R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-400">Imposto</span>
-                                <span className="font-semibold text-slate-200">R$ {resultado.valorImposto.toFixed(2).replace('.', ',')}</span>
-                              </div>
-                              <div className={`flex justify-between pt-2 border-t ${theme.resultItemBorder}`}>
-                                <span className="text-slate-300 font-bold">Total de Deduções (%)</span>
-                                <span className="font-bold text-orange-400">
-                                  {(resultado.margemUsada + (parsePercent(imposto) || 0) + (parsePercent(lucroDesejado) || 0)).toFixed(2).replace('.', ',')}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-8 bg-emerald-500/10 p-5 rounded-xl border border-emerald-500/20 flex items-center justify-between">
-                            <div>
-                              <p className="text-emerald-400 font-bold uppercase tracking-wider text-sm mb-1">Seu Lucro Líquido</p>
-                              <p className="text-2xl md:text-3xl font-extrabold text-emerald-300">R$ {resultado.lucroLiq.toFixed(2).replace('.', ',')}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-slate-400 font-medium mb-1">Margem</p>
-                              <div className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg font-bold text-xl">
-                                {resultado.lucroLiqPct.toFixed(1).replace('.', ',')}%
-                              </div>
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-
-                <p className={`text-center text-sm mt-8 pb-10 ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>
-                  Esta ferramenta calcula os custos dinamicamente utilizando as regras oficiais vigentes (Mercado Livre e Shopee).
-                </p>
-
-              </div>
-            </div>
-          );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js');
+        let impostoFinal = 0;
+        if (radioPersonalizado.checked) {
+            const aliquota = parseFloat(document.getElementById('taxaPersonalizada').value) || 0;
+            impostoFinal = precoVenda * (aliquota / 100);
+        }
+
+        const despesasOperacionais = custoEmbalagem + custoExtra;
+        const descontosTotais = tarifaML + taxaFixa + freteFinalDescontado + impostoFinal + despesasOperacionais;
+        
+        const lucroLiquido = precoVenda - custoProduto - descontosTotais;
+        const margem = precoVenda > 0 ? (lucroLiquido / precoVenda) * 100 : 0;
+
+        document.getElementById('resTarifaML').innerText = `R$ ${tarifaML.toFixed(2).replace('.', ',')}`;
+        document.getElementById('resTaxaFixa').innerText = `R$ ${taxaFixa.toFixed(2).replace('.', ',')}`;
+        document.getElementById('resDespesasExtras').innerText = `R$ ${despesasOperacionais.toFixed(2).replace('.', ',')}`;
+        document.getElementById('resCustoFrete').innerText = `R$ ${freteFinalDescontado.toFixed(2).replace('.', ',')}`;
+        document.getElementById('resImposto').innerText = `R$ ${impostoFinal.toFixed(2).replace('.', ',')}`;
+        
+        const resLucroEl = document.getElementById('resLucro');
+        resLucroEl.innerText = `R$ ${lucroLiquido.toFixed(2).replace('.', ',')}`;
+        resLucroEl.className = lucroLiquido < 0 ? 'result-row total negative' : 'result-row total';
+
+        const resMargemEl = document.getElementById('resMargem');
+        resMargemEl.innerText = `${margem.toFixed(2).replace('.', ',')}%`;
+        resMargemEl.className = margem < 0 ? 'negative' : '';
+    }
+
+    // Botão de Copiar
+    document.getElementById('btnCopiar').addEventListener('click', () => {
+        const precoVenda = document.getElementById('precoVenda').value || "0,00";
+        const lucroLiquido = document.getElementById('resLucro').innerText;
+        const margem = document.getElementById('resMargem').innerText;
+
+        const resumoText = `📊 Resumo de Precificação:
+Preço de Venda: R$ ${precoVenda}
+Tarifa ML: ${document.getElementById('resTarifaML').innerText}
+Frete: ${document.getElementById('resCustoFrete').innerText}
+Custos Extras/Emb: ${document.getElementById('resDespesasExtras').innerText}
+Imposto: ${document.getElementById('resImposto').innerText}
+----------------------
+💰 Lucro Líquido: ${lucroLiquido}
+📈 Margem de Lucro: ${margem}`;
+
+        navigator.clipboard.writeText(resumoText).then(() => {
+            const btn = document.getElementById('btnCopiar');
+            btn.innerText = "Copiado com Sucesso! ✔";
+            btn.classList.add('copiado');
+            
+            setTimeout(() => {
+                btn.innerText = "Copiar Resumo";
+                btn.classList.remove('copiado');
+            }, 2000);
+        });
     });
-  }
+
+    calcular();
 </script>
 </body>
 </html>
-
-
