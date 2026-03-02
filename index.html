@@ -116,13 +116,23 @@
             e.preventDefault();
             setIsLoading(true);
             setAuthError('');
+            
+            // Remove espaços acidentais e força a senha padrão do sistema
+            const cleanEmail = email.trim().toLowerCase(); 
+            const finalPassword = password.trim(); 
+
             const { data, error } = await supabase.auth.signInWithPassword({
-              email: email.trim(),
-              password: password,
+              email: cleanEmail,
+              password: finalPassword,
             });
-            if (error) setAuthError('E-mail ou senha incorretos. Verifique o e-mail da compra.');
-            else setIsLoggedIn(true);
+
+            if (error) {
+              setAuthError('Erro de acesso. Verifique se o e-mail foi cadastrado corretamente na compra.');
+            } else {
+              setIsLoggedIn(true);
+            }
             setIsLoading(false);
+          };
           };
 
           const handleLogout = async () => {
@@ -326,3 +336,4 @@
     </script>
 </body>
 </html>
+
