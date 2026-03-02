@@ -112,12 +112,12 @@
             return () => subscription.unsubscribe();
           }, []);
 
-          const handleLogin = async (e) => {
+         const handleLogin = async (e) => {
             e.preventDefault();
             setIsLoading(true);
             setAuthError('');
             
-            // Remove espaços acidentais e força a senha padrão do sistema
+            // Remove espaços e força o e-mail para minúsculo para bater com o banco
             const cleanEmail = email.trim().toLowerCase(); 
             const finalPassword = password.trim(); 
 
@@ -127,12 +127,11 @@
             });
 
             if (error) {
-              setAuthError('Erro de acesso. Verifique se o e-mail foi cadastrado corretamente na compra.');
+              setAuthError('E-mail ou senha incorretos. Verifique o e-mail da compra.');
             } else {
               setIsLoggedIn(true);
             }
             setIsLoading(false);
-          };
           };
 
           const handleLogout = async () => {
@@ -336,4 +335,5 @@
     </script>
 </body>
 </html>
+
 
