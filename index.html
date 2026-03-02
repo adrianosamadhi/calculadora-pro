@@ -6,7 +6,7 @@
     <title>Calculadora de Precificação PRO</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0B1120">
     <link rel="apple-touch-icon" href="icone-192.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -37,35 +37,55 @@
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="min-h-screen font-sans transition-colors duration-300 bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
+<body class="min-h-screen font-sans transition-colors duration-300 bg-[#0B1120] text-slate-200">
 
     <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-800 animate-fade-in">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-500 mb-4">
-                    <i data-lucide="lock" class="w-8 h-8"></i>
+        <div class="w-full max-w-[420px] bg-[#111827] rounded-3xl shadow-2xl p-8 md:p-10 border border-slate-800 animate-fade-in relative overflow-hidden">
+            
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center mb-8 relative z-10">
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/30 mb-5">
+                    <i data-lucide="lock" class="text-white w-8 h-8"></i>
                 </div>
-                <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400">Acesso PRO</h2>
-                <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Faça login com a conta gerada pela Kiwify</p>
+                <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">Acesso Exclusivo</h2>
+                <p class="text-slate-400 mt-2 text-sm font-medium">Faça login para usar a Calculadora de Precificação Pro.</p>
             </div>
 
-            <div id="login-error" class="hidden-element mb-4 p-3 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-sm font-medium flex items-center gap-2">
-                <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
+            <div id="login-error" class="hidden-element mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium flex items-start gap-3 relative z-10">
+                <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5"></i>
                 <span id="login-error-msg">Email ou senha incorretos.</span>
             </div>
 
-            <div class="space-y-4">
+            <form id="login-form" class="space-y-5 relative z-10">
                 <div>
-                    <label class="block text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2">E-mail</label>
-                    <input type="email" id="email" placeholder="seu@email.com" class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-medium bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-600">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">E-mail</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="mail" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                        <input type="email" id="email" required placeholder="seu@email.com" class="w-full py-3 pl-12 pr-4 bg-[#030712] border border-slate-800 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all placeholder-slate-600 font-medium">
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-2">Senha</label>
-                    <input type="password" id="password" placeholder="••••••••" class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-medium bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-600">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Senha</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="key" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                        <input type="password" id="password" required placeholder="••••••••" class="w-full py-3 pl-12 pr-4 bg-[#030712] border border-slate-800 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all placeholder-slate-600 font-medium">
+                    </div>
                 </div>
-                <button id="btn-login" class="w-full mt-4 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold text-lg shadow-lg transform transition-all active:scale-95 flex justify-center items-center gap-2">
-                    <span>ENTRAR NA CALCULADORA</span>
+                
+                <button type="submit" id="btn-login" class="w-full mt-2 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-orange-500/20 transform transition-all active:scale-95 flex justify-center items-center gap-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i> <span>Entrar no Sistema</span>
                 </button>
+            </form>
+
+            <div class="mt-8 text-center relative z-10 border-t border-slate-800 pt-6">
+                <p class="text-sm font-medium text-slate-500">
+                    Ainda não tem acesso? <a href="#" class="text-orange-400 hover:text-orange-300 transition-colors underline decoration-orange-400/30 underline-offset-4">Adquira sua licença aqui.</a>
+                </p>
             </div>
         </div>
     </div>
@@ -79,7 +99,7 @@
                     <i data-lucide="moon" class="block dark:hidden w-5 h-5"></i>
                 </button>
                 <button id="btn-logout" class="p-3 rounded-full transition-all duration-300 shadow-lg flex items-center justify-center bg-white dark:bg-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-slate-700" title="Sair / Deslogar">
-                    <i data-lucide="lock" class="w-5 h-5"></i>
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
                 </button>
             </div>
 
@@ -90,13 +110,13 @@
                 <p class="text-lg font-medium text-slate-500 dark:text-slate-400">por Adriano Santos</p>
             </div>
 
-            <div class="rounded-3xl shadow-2xl overflow-hidden border transition-colors duration-300 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+            <div class="rounded-3xl shadow-2xl overflow-hidden border transition-colors duration-300 bg-white dark:bg-[#111827] border-slate-100 dark:border-slate-800">
                 
                 <div class="flex w-full">
                     <button id="tab-ml" class="flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-yellow-400 text-yellow-950 border-b-4 border-yellow-600">
                         <i data-lucide="shopping-bag"></i> Mercado Livre
                     </button>
-                    <button id="tab-shopee" class="flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button id="tab-shopee" class="flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
                         <i data-lucide="shopping-bag"></i> Shopee
                     </button>
                 </div>
@@ -113,32 +133,32 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         
                         <div class="space-y-2">
-                            <label class="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Custo do Produto (R$)</label>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Custo do Produto (R$)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i data-lucide="dollar-sign" class="w-[18px] text-slate-400 dark:text-slate-500"></i>
                                 </div>
-                                <input type="text" id="custoProduto" placeholder="0,00" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-11 pr-4 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 currency-input">
+                                <input type="text" id="custoProduto" placeholder="0,00" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-11 pr-4 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-[#030712] dark:border-slate-800 dark:text-white dark:placeholder-slate-600 currency-input">
                             </div>
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Embalagem/Outros (R$)</label>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Embalagem/Outros (R$)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i data-lucide="package" class="w-[18px] text-slate-400 dark:text-slate-500"></i>
                                 </div>
-                                <input type="text" id="embalagem" placeholder="0,00" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-11 pr-4 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 currency-input">
+                                <input type="text" id="embalagem" placeholder="0,00" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-11 pr-4 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-[#030712] dark:border-slate-800 dark:text-white dark:placeholder-slate-600 currency-input">
                             </div>
                         </div>
 
                         <div class="space-y-2">
-                            <label class="flex justify-between text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                            <label class="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                                 <span>Imposto sobre a Venda</span>
-                                <span class="text-xs font-normal mt-0.5 text-slate-400 dark:text-slate-500">(MEI = 0)</span>
+                                <span class="font-normal mt-0.5 text-slate-400 dark:text-slate-500">(MEI = 0)</span>
                             </label>
                             <div class="relative">
-                                <input type="text" id="imposto" placeholder="0" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-4 pr-11 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-slate-950 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 percent-input">
+                                <input type="text" id="imposto" placeholder="0" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg pl-4 pr-11 bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 dark:bg-[#030712] dark:border-slate-800 dark:text-white dark:placeholder-slate-600 percent-input">
                                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                     <i data-lucide="percent" class="w-[18px] text-slate-400 dark:text-slate-500"></i>
                                 </div>
@@ -146,7 +166,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-sm font-bold uppercase tracking-wide text-orange-500">Lucro Líquido Desejado</label>
+                            <label class="text-xs font-bold uppercase tracking-wider text-orange-500">Lucro Líquido Desejado</label>
                             <div class="relative">
                                 <input type="text" id="lucroDesejado" value="20" placeholder="20" class="w-full py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-bold text-lg pl-4 pr-11 bg-orange-50 border-orange-200 text-orange-700 placeholder-orange-300 dark:bg-orange-500/10 dark:border-orange-500/30 dark:text-orange-400 dark:placeholder-orange-700/50 percent-input">
                                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
@@ -158,19 +178,19 @@
                         <div id="ml-controls" class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                             
                             <div class="space-y-2 col-span-1 md:col-span-2">
-                                <label class="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Tipo de Anúncio</label>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Tipo de Anúncio</label>
                                 <div class="flex gap-3">
                                     <button id="btn-classico" class="ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-yellow-500 text-yellow-950 ring-2 ring-yellow-400" data-value="11.5">Clássico (~11.5%)</button>
-                                    <button id="btn-premium" class="ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-slate-50 text-slate-500 border border-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-800" data-value="16.5">Premium (~16.5%)</button>
+                                    <button id="btn-premium" class="ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-slate-50 text-slate-500 border border-slate-200 dark:bg-[#030712] dark:text-slate-400 dark:border-slate-800" data-value="16.5">Premium (~16.5%)</button>
                                 </div>
                             </div>
 
                             <div class="space-y-2">
-                                <label class="text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">Peso do Produto</label>
-                                <select id="pesoProduto" class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-white appearance-none"></select>
+                                <label class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Peso do Produto</label>
+                                <select id="pesoProduto" class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all font-semibold text-lg bg-slate-50 border-slate-200 text-slate-800 dark:bg-[#030712] dark:border-slate-800 dark:text-white appearance-none"></select>
                             </div>
 
-                            <div class="space-y-2 flex items-center justify-between p-4 rounded-xl border mt-7 h-[54px] bg-slate-50 border-slate-200 dark:bg-slate-950 dark:border-slate-800">
+                            <div class="space-y-2 flex items-center justify-between p-4 rounded-xl border mt-6 h-[52px] bg-slate-50 border-slate-200 dark:bg-[#030712] dark:border-slate-800">
                                 <span class="font-bold text-sm uppercase text-slate-700 dark:text-slate-300">Frete Grátis</span>
                                 <button id="toggle-frete" class="relative inline-flex h-6 w-12 items-center rounded-full transition-colors bg-slate-300 dark:bg-slate-700">
                                     <span id="toggle-frete-dot" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
@@ -200,7 +220,7 @@
     </div>
 
     <script>
-        // Inicializa Ícones na primeira carga
+        // Inicializa Ícones
         lucide.createIcons();
 
         // ==========================================
@@ -213,19 +233,17 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Registro do Service Worker (Ativa o PWA / Instalação no Celular)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('SW registrado com sucesso:', registration.scope);
-                }).catch(err => {
-                    console.log('Falha no registro do SW:', err);
-                });
+                    console.log('SW registrado com sucesso');
+                }).catch(err => console.log('Falha no SW:', err));
             });
         }
 
         const loginContainer = document.getElementById('login-container');
         const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
         const btnLogin = document.getElementById('btn-login');
         const btnLogout = document.getElementById('btn-logout');
         const loginError = document.getElementById('login-error');
@@ -236,34 +254,38 @@
             if (session) {
                 loginContainer.classList.add('hidden-element');
                 appContainer.classList.remove('hidden-element');
+                
+                // Força o dark mode se estiver deslogado, mas mantém o estado no app
+                if(document.documentElement.classList.contains('dark') === false) {
+                   document.documentElement.classList.add('dark');
+                }
             } else {
                 appContainer.classList.add('hidden-element');
                 loginContainer.classList.remove('hidden-element');
+                // Tela de login sempre dark para manter o design premium
+                document.documentElement.classList.add('dark');
             }
         }
         checkSession();
 
-        btnLogin.addEventListener('click', async () => {
+        // LÓGICA DE LOGIN COM FORMULÁRIO (Permite Enter)
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede a página de recarregar
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            if (!email || !password) {
-                loginErrorMsg.innerText = "Preencha e-mail e senha.";
-                loginError.classList.remove('hidden-element');
-                return;
-            }
-
+            const btnContent = btnLogin.innerHTML;
             btnLogin.innerHTML = '<div class="spinner"></div>';
             loginError.classList.add('hidden-element');
 
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                loginErrorMsg.innerText = "Credenciais inválidas. Tente novamente.";
+                loginErrorMsg.innerText = "Credenciais inválidas. Verifique seu e-mail e senha.";
                 loginError.classList.remove('hidden-element');
-                btnLogin.innerHTML = '<span>ENTRAR NA CALCULADORA</span>';
+                btnLogin.innerHTML = btnContent;
             } else {
-                btnLogin.innerHTML = '<span>ENTRAR NA CALCULADORA</span>';
+                btnLogin.innerHTML = btnContent;
                 checkSession();
             }
         });
@@ -273,6 +295,7 @@
             checkSession();
         });
 
+        // DADOS DA CALCULADORA
         const mlRates = {
             "Até 0,3 kg": [5.65, 6.35, 7.75, 12.35, 13.35, 15.45, 16.45, 20.95],
             "De 0,3 a 0,5 kg": [5.95, 6.75, 7.95, 13.25, 15.45, 17.65, 18.85, 23.55],
@@ -296,7 +319,7 @@
             const opt = document.createElement('option');
             opt.value = peso;
             opt.textContent = peso;
-            opt.className = "dark:bg-slate-900 bg-white";
+            opt.className = "dark:bg-[#111827] bg-white";
             selectPeso.appendChild(opt);
         });
         selectPeso.value = 'De 1 a 1,5 kg';
@@ -335,13 +358,13 @@
             resetUI();
             if (platform === 'ML') {
                 tabML.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-yellow-400 text-yellow-950 border-b-4 border-yellow-600";
-                tabShopee.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800";
+                tabShopee.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800";
                 mlControls.classList.remove('hidden-element');
                 alertPlatform.textContent = "Mercado Livre";
                 alertBox.className = "mb-8 p-4 rounded-xl flex items-start gap-3 border transition-colors bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-500/10 dark:border-yellow-500/20 dark:text-yellow-200";
             } else {
                 tabShopee.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-orange-500 text-white border-b-4 border-orange-700";
-                tabML.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800";
+                tabML.className = "flex-1 py-5 text-lg font-bold transition-all duration-300 flex justify-center items-center gap-2 bg-slate-50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800";
                 mlControls.classList.add('hidden-element');
                 alertPlatform.textContent = "Shopee";
                 alertBox.className = "mb-8 p-4 rounded-xl flex items-start gap-3 border transition-colors bg-orange-50 border-orange-200 text-orange-800 dark:bg-orange-500/10 dark:border-orange-500/20 dark:text-orange-200";
@@ -353,7 +376,7 @@
         document.querySelectorAll('.ml-type-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.ml-type-btn').forEach(b => {
-                    b.className = "ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-slate-50 text-slate-500 border border-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-800";
+                    b.className = "ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-slate-50 text-slate-500 border border-slate-200 dark:bg-[#030712] dark:text-slate-400 dark:border-slate-800";
                 });
                 const target = e.target;
                 target.className = "ml-type-btn flex-1 py-3 rounded-xl font-bold transition-all bg-yellow-500 text-yellow-950 ring-2 ring-yellow-400";
@@ -482,7 +505,7 @@
             }
 
             resultBox.innerHTML = `
-                <div class="rounded-2xl p-6 md:p-8 text-slate-800 dark:text-white shadow-inner relative overflow-hidden border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">
+                <div class="rounded-2xl p-6 md:p-8 text-slate-800 dark:text-white shadow-inner relative overflow-hidden border bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800">
                     <div class="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 rounded-bl-xl font-bold text-sm flex items-center gap-1">
                         <i data-lucide="check-circle-2" class="w-[16px]"></i> Precificação Segura
                     </div>
@@ -505,7 +528,7 @@
                             <span class="font-semibold text-red-500 dark:text-red-400">- ${fMoeda(d.valorImposto)}</span>
                         </div>
                     </div>
-                    <div class="mt-6 p-5 rounded-xl border bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+                    <div class="mt-6 p-5 rounded-xl border bg-slate-50 border-slate-200 dark:bg-[#030712] dark:border-slate-800">
                         <h3 class="text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wide text-xs mb-4">Deduções Totais na Venda</h3>
                         <div class="space-y-3 text-sm">
                             <div class="flex justify-between">
@@ -533,9 +556,8 @@
                 </div>
             `;
             resultBox.classList.remove('hidden-element');
-            lucide.createIcons(); // Recarrega os ícones dos resultados gerados
+            lucide.createIcons();
         }
     </script>
 </body>
 </html>
-
