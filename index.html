@@ -16,6 +16,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -35,14 +36,14 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-[#0B1120] transition-colors duration-300">
+<body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
         // ==========================================
-        // SUAS CHAVES DO SUPABASE
+        // SUAS CHAVES DO SUPABASE (Mantidas do seu arquivo)
         // ==========================================
         const supabaseUrl = 'https://pttckajgbilxtlvhrdsm.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0dGNrYWpnYmlseHRzdmhyZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzkyMDYsImV4cCI6MjA4Nzc0NTIwNn0.8buGbTrL0_nsFW9B0JPf_PyFeYbvAbe2UjMISpdQ6Os';
@@ -85,7 +86,12 @@
         function App() {
           const [isLoggedIn, setIsLoggedIn] = useState(false);
           const [email, setEmail] = useState('');
-          const [password, setPassword] = useState(''); 
+          
+          // ==============================================================
+          // A SENHA DO CLOUDFLARE INSERIDA AQUI
+          // ==============================================================
+          const [password, setPassword] = useState('Calculadora@123'); 
+          
           const [authError, setAuthError] = useState('');
           const [isLoading, setIsLoading] = useState(false);
           const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -97,7 +103,7 @@
           const [imposto, setImposto] = useState('');
           const [lucroDesejado, setLucroDesejado] = useState('20');
           
-          // Controles Mercado Livre
+          // Nomes Estados Mercado Livre
           const [tipoAnuncio, setTipoAnuncio] = useState('11.5');
           const [freteGratis, setFreteGratis] = useState(false);
           const [pesoProduto, setPesoProduto] = useState('De 1 a 1,5 kg');
@@ -132,12 +138,12 @@
             setAuthError('');
             
             const { data, error } = await supabase.auth.signInWithPassword({
-              email: email,
+              email: email.trim(),
               password: password,
             });
 
             if (error) {
-              setAuthError('E-mail ou senha incorretos. Acesso negado.');
+              setAuthError('E-mail ou senha incorretos. Verifique se digitou o e-mail da compra.');
             } else {
               setIsLoggedIn(true);
               setAuthError('');
@@ -150,7 +156,7 @@
             setIsLoggedIn(false);
             setResultado(null);
             setEmail('');
-            setPassword(''); 
+            setPassword('Calculadora@123'); // Mantém a senha cravada
           };
 
           const handleCurrencyChange = (setter) => (e) => setter(formatCurrency(e.target.value));
@@ -196,12 +202,9 @@
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
                 nomeFaixa = mlTierNames[tierIdx];
 
-                if (p < 79) {
-                    taxaFixaML = 6.75;
-                }
-                if (freteGratis || p >= 79) {
-                    freteVendedorML = mlRates[pesoProduto][tierIdx];
-                }
+                if (p < 79) taxaFixaML = 6.75;
+                if (freteGratis || p >= 79) freteVendedorML = mlRates[pesoProduto][tierIdx];
+                
                 custoFixoFrete = taxaFixaML + freteVendedorML;
               }
 
@@ -260,7 +263,7 @@
 
           if (isCheckingSession) {
             return (
-              <div className="min-h-screen bg-[#0B1120] flex flex-col items-center justify-center">
+              <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
                  <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                  <p className="mt-4 text-slate-400">Verificando segurança...</p>
               </div>
@@ -269,18 +272,32 @@
 
           if (!isLoggedIn) {
             return (
-              <div className="min-h-screen bg-[#0B1120] text-slate-200 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+              <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-500/20 blur-[100px] rounded-full pointer-events-none"></div>
                 
-                <div className="w-full max-w-[420px] bg-[#111827] border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-fade-in">
+                <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-fade-in">
                   <div className="text-center mb-8">
-                    {/* AQUI ESTÁ O LOGO CARREGANDO O ARQUIVO CORRETO .PNG */}
-                    <img src="logo.png" alt="Logo Calculadora" className="mx-auto h-20 mb-4 object-contain rounded-xl drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]" />
                     
+                    {/* ====== LOGO DO CAMALEÃO (COM BACKBACK PARA CADEADO) ====== */}
+                    <img 
+                        src="logo.jpg" 
+                        alt="Logo" 
+                        className="mx-auto w-24 h-24 mb-4 object-contain rounded-2xl drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]" 
+                        onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = "logo.png"; // Tenta .png se .jpg falhar
+                            e.target.style.display = 'none'; // Esconde a imagem se ambas falharem
+                            document.getElementById('cadeado-fallback').style.display = 'flex'; // Mostra o cadeado
+                        }} 
+                    />
+                    <div id="cadeado-fallback" style={{display: 'none'}} className="w-16 h-16 bg-gradient-to-br from-orange-500 to-rose-500 rounded-2xl mx-auto items-center justify-center mb-6 shadow-lg shadow-orange-500/30">
+                      <i className="ph-fill ph-lock-key text-white text-3xl"></i>
+                    </div>
+
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 mb-2">
                       Acesso Exclusivo
                     </h1>
-                    <p className="text-slate-400 text-sm font-medium">Faça login para usar a Calculadora de Precificação Pro.</p>
+                    <p className="text-slate-400 text-sm">Faça login para usar a Calculadora de Precificação Pro.</p>
                   </div>
 
                   <form onSubmit={handleLogin} className="space-y-5">
@@ -296,7 +313,7 @@
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="seu@email.com"
-                          className="w-full bg-[#030712] border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all font-medium"
+                          className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -313,20 +330,21 @@
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full bg-[#030712] border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all font-medium"
+                          className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                         />
                       </div>
-                      
-                      {/* AVISO DA SENHA QUEIMADA AQUI */}
-                      <p className="text-[12px] text-slate-400 mt-2 flex items-start gap-1.5 leading-snug">
-                        <i className="ph-fill ph-info text-orange-500 text-sm mt-0.5"></i> 
-                        <span>Aviso: Use o seu e-mail de compra da Kiwify. A sua senha padrão gerada é <strong className="text-orange-400">123456</strong></span>
+
+                      {/* ==== SEU AVISO DA SENHA CRAVADA AQUI ==== */}
+                      <p className="text-[13px] text-slate-400 mt-2 flex items-start gap-1.5 leading-snug">
+                        <i className="ph-fill ph-info text-orange-500 text-sm mt-0.5 shrink-0"></i> 
+                        <span>Aviso: Use o <strong>e-mail da sua compra</strong> na Kiwify. A sua senha padrão já está preenchida acima (<strong className="text-orange-400">Calculadora@123</strong>).</span>
                       </p>
+
                     </div>
 
                     {authError && (
-                      <div className="p-4 bg-[#2a1215] border border-red-500/20 rounded-xl flex items-start gap-2 text-[#ff6b6b] text-sm font-medium mt-4">
-                        <i className="ph-fill ph-warning-circle text-lg shrink-0 mt-0.5"></i> 
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm">
+                        <i className="ph-fill ph-warning-circle text-lg shrink-0"></i> 
                         <span>{authError}</span>
                       </div>
                     )}
@@ -334,14 +352,14 @@
                     <button 
                       type="submit" 
                       disabled={isLoading}
-                      className="w-full py-4 mt-2 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-all active:scale-95 disabled:opacity-70 shadow-lg shadow-orange-500/20"
+                      className="w-full py-3.5 mt-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-all active:scale-95 disabled:opacity-70 shadow-lg shadow-orange-500/20"
                     >
                       {isLoading ? <span className="animate-pulse">Autenticando...</span> : <><i className="ph ph-sign-in text-xl"></i> Entrar no Sistema</>}
                     </button>
                   </form>
 
-                  <p className="text-center mt-8 pt-6 border-t border-slate-800 text-xs text-slate-500 font-medium">
-                    Ainda não tem acesso? <a href="#" className="text-orange-400 hover:text-orange-300 underline underline-offset-4 decoration-orange-400/30">Adquira sua licença aqui</a>.
+                  <p className="text-center mt-6 text-xs text-slate-500">
+                    Ainda não tem acesso? <a href="#" className="text-orange-400 hover:text-orange-300 font-bold underline">Adquira sua licença aqui</a>.
                   </p>
                 </div>
               </div>
@@ -491,33 +509,53 @@
                         </div>
                       </div>
 
-                      {/* NOVOS CONTROLES MERCADO LIVRE */}
+                      {/* NOVOS CONTROLES MERCADO LIVRE ENCAIXADOS NO LAYOUT ORIGINAL */}
                       {platform === 'ML' && (
-                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <>
                           <div className="space-y-2 col-span-1 md:col-span-2">
                             <label className={theme.label}>Tipo de Anúncio</label>
                             <div className="flex gap-3">
-                              <button type="button" onClick={() => setTipoAnuncio('11.5')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${tipoAnuncio === '11.5' ? 'bg-yellow-500 text-yellow-950 ring-2 ring-yellow-400' : isDarkMode ? 'bg-slate-950 text-slate-400 border border-slate-800 hover:bg-slate-800' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>Clássico (~11.5%)</button>
-                              <button type="button" onClick={() => setTipoAnuncio('16.5')} className={`flex-1 py-3 rounded-xl font-bold transition-all ${tipoAnuncio === '16.5' ? 'bg-yellow-500 text-yellow-950 ring-2 ring-yellow-400' : isDarkMode ? 'bg-slate-950 text-slate-400 border border-slate-800 hover:bg-slate-800' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>Premium (~16.5%)</button>
+                              <button 
+                                type="button" 
+                                onClick={() => setTipoAnuncio('11.5')} 
+                                className={`flex-1 py-3 rounded-xl font-bold transition-all ${tipoAnuncio === '11.5' ? 'bg-yellow-400 text-yellow-950 ring-2 ring-yellow-400' : isDarkMode ? 'bg-slate-950 text-slate-400 border border-slate-700 hover:bg-slate-800' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}
+                              >
+                                Clássico (~11.5%)
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => setTipoAnuncio('16.5')} 
+                                className={`flex-1 py-3 rounded-xl font-bold transition-all ${tipoAnuncio === '16.5' ? 'bg-yellow-400 text-yellow-950 ring-2 ring-yellow-400' : isDarkMode ? 'bg-slate-950 text-slate-400 border border-slate-700 hover:bg-slate-800' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}
+                              >
+                                Premium (~16.5%)
+                              </button>
                             </div>
                           </div>
 
                           <div className="space-y-2">
                             <label className={theme.label}>Peso do Produto</label>
-                            <select value={pesoProduto} onChange={(e) => setPesoProduto(e.target.value)} className={`${theme.input} px-4 appearance-none`}>
+                            <select 
+                              value={pesoProduto} 
+                              onChange={(e) => setPesoProduto(e.target.value)} 
+                              className={`${theme.input} px-4 appearance-none`}
+                            >
                               {Object.keys(mlRates).map(peso => (
                                 <option key={peso} value={peso} className={isDarkMode ? "bg-slate-900" : "bg-white"}>{peso}</option>
                               ))}
                             </select>
                           </div>
 
-                          <div className={`space-y-2 flex items-center justify-between p-4 rounded-xl border mt-7 h-[54px] ${isDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                            <span className={`font-bold text-sm uppercase ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Frete Grátis</span>
-                            <button type="button" onClick={() => setFreteGratis(!freteGratis)} className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${freteGratis ? 'bg-green-500' : isDarkMode ? 'bg-slate-700' : 'bg-slate-300'}`}>
+                          <div className={`space-y-2 flex items-center justify-between p-4 rounded-xl border mt-7 h-[54px] ${isDarkMode ? 'bg-slate-950 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                            <span className={`font-bold text-sm uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Frete Grátis</span>
+                            <button 
+                              type="button" 
+                              onClick={() => setFreteGratis(!freteGratis)} 
+                              className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${freteGratis ? 'bg-green-500' : isDarkMode ? 'bg-slate-700' : 'bg-slate-300'}`}
+                            >
                               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${freteGratis ? 'translate-x-7' : 'translate-x-1'}`} />
                             </button>
                           </div>
-                        </div>
+                        </>
                       )}
 
                     </div>
@@ -562,7 +600,7 @@
                               <span className="font-semibold text-red-400">- R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span>
                             </div>
 
-                            {/* Detalhamento condicional ML vs Shopee */}
+                            {/* Separando Taxa e Custo de Frete no ML */}
                             {platform === 'ML' ? (
                               <>
                                 <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
