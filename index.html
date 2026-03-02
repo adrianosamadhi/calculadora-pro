@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=9">
+    <link rel="manifest" href="manifest.json?v=10">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,7 +22,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- TABELA OFICIAL ML (Atualizada conforme diretrizes de 4 de março de 2026) ---
         const mlRates = {
           "Até 0,3 kg": [5.65, 6.55, 7.75, 12.35, 14.35, 16.45, 18.45, 20.95],
           "De 0,3 a 0,5 kg": [5.95, 6.65, 7.85, 13.25, 15.45, 17.65, 19.85, 22.55],
@@ -156,25 +155,20 @@
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
-                // Pega a tarifa da tabela oficial
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
                 let valorTarifaAtual = mlRates[pesoProduto][tierIdx];
                 nomeFaixa = mlTierNames[tierIdx];
 
-                // REGRAS OFICIAIS ATUALIZADAS ML
                 if (p < 79) {
                     if (ofereceFreteGratis) {
-                        // Se ativou frete rápido opcional, paga a tarifa da coluna equivalente a R$ 79 (índice 3 da tabela)
                         freteVendedor = mlRates[pesoProduto][3]; 
                         custoOperacionalPlataforma = 0; 
                     } else {
-                        // Regra padrão: paga apenas o custo operacional (novo formato que substituiu os R$ 6,75)
                         custoOperacionalPlataforma = valorTarifaAtual; 
                         freteVendedor = 0; 
                     }
                 } else {
-                    // Acima de R$ 79, o frete grátis e rápido é obrigatório
                     custoOperacionalPlataforma = 0; 
                     freteVendedor = valorTarifaAtual; 
                 }
@@ -232,6 +226,7 @@
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-orange-500/10 blur-[100px] rounded-full pointer-events-none"></div>
                       <div className="w-full max-w-[440px] bg-[#111827] border border-slate-800 rounded-3xl p-10 shadow-2xl relative z-10 animate-fade-in">
                           <div className="text-center mb-8">
+                              <img src="logo.png" className="mx-auto h-20 mb-4 object-contain rounded-xl drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]" onError={(e) => e.target.style.display='none'} />
                               <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400 mt-4">Acesso Exclusivo</h1>
                               <p className="text-slate-400 text-sm mt-2">Faça login para usar a Calculadora.</p>
                           </div>
@@ -267,6 +262,18 @@
             <div className={`min-h-screen py-10 px-4 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
               <div className="max-w-4xl mx-auto relative">
                 
+                {/* BOTÃO CADEADO (LOGOUT) */}
+                <button
+                  onClick={() => setIsLoggedIn(false)}
+                  className={`absolute top-0 left-0 md:-mt-4 p-3 rounded-full transition-all duration-300 shadow-lg flex items-center justify-center ${
+                    isDarkMode ? 'bg-slate-800 text-rose-400 hover:bg-slate-700 hover:text-rose-300' : 'bg-white text-rose-500 hover:bg-slate-50'
+                  }`}
+                  title="Sair e Bloquear Aplicativo"
+                >
+                  <i className="ph-fill ph-lock-key text-2xl"></i>
+                </button>
+
+                {/* BOTÃO TEMA */}
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className={`absolute top-0 right-0 md:-mt-4 p-3 rounded-full transition-all duration-300 shadow-lg flex items-center justify-center ${
@@ -277,11 +284,12 @@
                   {isDarkMode ? <i className="ph-fill ph-sun text-2xl"></i> : <i className="ph-fill ph-moon text-2xl"></i>}
                 </button>
 
-                <div className="text-center mb-10 pt-12 md:pt-0">
+                {/* HEADER COM LOGO */}
+                <div className="text-center mb-10 pt-16 md:pt-4 flex flex-col items-center">
+                  <img src="logo.png" alt="Logo" className="h-20 mb-4 object-contain rounded-xl drop-shadow-[0_0_15px_rgba(249,115,22,0.2)]" onError={(e) => e.target.style.display='none'} />
                   <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400 mb-2">
                     Calculadora de Precificação
                   </h1>
-                  <p className={`text-lg font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>por Adriano Santos</p>
                 </div>
 
                 <div className={`rounded-3xl shadow-2xl overflow-hidden border transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
