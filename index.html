@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=7">
+    <link rel="manifest" href="manifest.json?v=9">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,28 +22,31 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // --- TABELA OFICIAL ML (Atualizada conforme diretrizes de 4 de março de 2026) ---
         const mlRates = {
-          "Até 0,3 kg": [5.65, 6.35, 7.75, 12.35, 13.35, 15.45, 16.45, 20.95],
-          "De 0,3 a 0,5 kg": [5.95, 6.75, 7.95, 13.25, 15.45, 17.65, 18.85, 23.55],
-          "De 0,5 a 1 kg": [6.05, 6.75, 7.95, 14.15, 19.85, 18.45, 19.85, 22.65],
-          "De 1 a 1,5 kg": [6.15, 6.85, 8.15, 14.45, 18.45, 19.45, 21.15, 24.65],
-          "De 1,5 a 2 kg": [6.35, 6.75, 8.15, 15.75, 19.33, 21.05, 22.65, 25.55],
-          "De 2 a 3 kg": [6.35, 7.95, 9.95, 14.85, 21.05, 22.65, 25.65, 26.25],
-          "De 3 a 4 kg": [6.35, 8.15, 9.95, 15.85, 28.65, 27.75, 27.75, 33.55],
-          "De 4 a 5 kg": [6.95, 8.25, 10.15, 25.55, 28.65, 28.65, 30.75, 40.05],
-          "De 5 a 7 kg": [6.65, 8.95, 10.33, 27.65, 31.45, 33.65, 37.65, 43.25],
-          "De 6 a 7 kg": [6.75, 9.35, 11.35, 31.55, 38.65, 36.05, 32.65, 50.65],
-          "De 7 a 8 kg": [6.75, 9.25, 11.33, 28.95, 54.35, 55.05, 42.65, 54.35],
-          "De 9 a 11 kg": [7.23, 9.15, 11.33, 42.15, 54.65, 59.35, 59.45, 69.65],
-          "De 13 a 15 kg": [7.25, 10.15, 11.33, 52.45, 59.95, 67.45, 67.45, 75.95]
+          "Até 0,3 kg": [5.65, 6.55, 7.75, 12.35, 14.35, 16.45, 18.45, 20.95],
+          "De 0,3 a 0,5 kg": [5.95, 6.65, 7.85, 13.25, 15.45, 17.65, 19.85, 22.55],
+          "De 0,5 a 1 kg": [6.05, 6.75, 7.95, 13.85, 16.15, 18.45, 20.75, 23.65],
+          "De 1 a 1,5 kg": [6.15, 6.85, 8.05, 14.15, 16.45, 18.85, 21.15, 24.65],
+          "De 1,5 a 2 kg": [6.25, 6.95, 8.15, 14.45, 16.85, 19.25, 21.65, 24.65],
+          "De 2 a 3 kg": [6.35, 7.95, 8.55, 15.75, 18.35, 21.05, 23.65, 26.25],
+          "De 3 a 4 kg": [6.45, 8.15, 8.95, 17.05, 19.85, 22.65, 25.55, 28.35],
+          "De 4 a 5 kg": [6.55, 8.35, 9.75, 18.45, 21.55, 24.65, 27.75, 30.75],
+          "De 5 a 6 kg": [6.65, 8.55, 9.95, 25.45, 28.55, 32.65, 35.75, 39.75],
+          "De 6 a 7 kg": [6.75, 8.75, 10.15, 27.05, 31.05, 36.05, 40.05, 44.05],
+          "De 7 a 8 kg": [6.85, 8.95, 10.35, 28.85, 33.65, 38.45, 43.25, 48.05],
+          "De 8 a 9 kg": [6.95, 9.15, 10.55, 29.65, 34.55, 39.55, 44.45, 49.35],
+          "De 9 a 11 kg": [7.05, 9.55, 10.95, 41.25, 48.05, 54.95, 61.75, 68.65],
+          "De 11 a 13 kg": [7.15, 9.95, 11.35, 42.15, 49.25, 56.25, 63.25, 70.25],
+          "De 13 a 15 kg": [7.25, 10.15, 11.55, 45.05, 52.45, 59.95, 67.45, 74.95]
         };
 
-        const mlPriceTiers = [18.99, 38.99, 78.99, 98.99, 119.99, 149.99, 199.99, Infinity];
+        const mlPriceTiers = [18.99, 48.99, 78.99, 99.99, 119.99, 149.99, 199.99, Infinity];
         const mlTierNames = [
           "Até R$ 18,99", 
-          "R$ 19 a R$ 38,99", 
-          "R$ 39 a R$ 78,99", 
-          "R$ 79 a R$ 98,99", 
+          "R$ 19 a R$ 48,99", 
+          "R$ 49 a R$ 78,99", 
+          "R$ 79 a R$ 99,99", 
           "R$ 100 a R$ 119,99", 
           "R$ 120 a R$ 149,99", 
           "R$ 150 a R$ 199,99", 
@@ -128,7 +131,7 @@
 
             for (let p = custo + emb; p <= 15000; p += 0.01) {
               let comissaoVenda = 0;
-              let taxaFixaPlataforma = 0;
+              let custoOperacionalPlataforma = 0;
               let freteVendedor = 0;
               let comissaoPctReal = 0;
               let nomeFaixa = "";
@@ -136,16 +139,16 @@
               if (platform === 'SHOPEE') {
                 if (p <= 79.99) {
                   comissaoPctReal = 0.20;
-                  taxaFixaPlataforma = 4;
+                  custoOperacionalPlataforma = 4;
                 } else if (p <= 99.99) {
                   comissaoPctReal = 0.14;
-                  taxaFixaPlataforma = 16;
+                  custoOperacionalPlataforma = 16;
                 } else if (p <= 199.99) {
                   comissaoPctReal = 0.14;
-                  taxaFixaPlataforma = 20;
+                  custoOperacionalPlataforma = 20;
                 } else {
                   comissaoPctReal = 0.14;
-                  taxaFixaPlataforma = 26;
+                  custoOperacionalPlataforma = 26;
                 }
                 comissaoVenda = p * comissaoPctReal;
               } 
@@ -153,24 +156,32 @@
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
+                // Pega a tarifa da tabela oficial
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
-                let valorFreteTabela = mlRates[pesoProduto][tierIdx];
+                let valorTarifaAtual = mlRates[pesoProduto][tierIdx];
                 nomeFaixa = mlTierNames[tierIdx];
 
+                // REGRAS OFICIAIS ATUALIZADAS ML
                 if (p < 79) {
-                    taxaFixaPlataforma = 6.75; 
                     if (ofereceFreteGratis) {
-                        freteVendedor = valorFreteTabela; 
+                        // Se ativou frete rápido opcional, paga a tarifa da coluna equivalente a R$ 79 (índice 3 da tabela)
+                        freteVendedor = mlRates[pesoProduto][3]; 
+                        custoOperacionalPlataforma = 0; 
+                    } else {
+                        // Regra padrão: paga apenas o custo operacional (novo formato que substituiu os R$ 6,75)
+                        custoOperacionalPlataforma = valorTarifaAtual; 
+                        freteVendedor = 0; 
                     }
                 } else {
-                    taxaFixaPlataforma = 0; 
-                    freteVendedor = valorFreteTabela; 
+                    // Acima de R$ 79, o frete grátis e rápido é obrigatório
+                    custoOperacionalPlataforma = 0; 
+                    freteVendedor = valorTarifaAtual; 
                 }
               }
 
               const valorImposto = p * impostoPct;
-              const custosTotais = custo + emb + taxaFixaPlataforma + freteVendedor + comissaoVenda + valorImposto;
+              const custosTotais = custo + emb + custoOperacionalPlataforma + freteVendedor + comissaoVenda + valorImposto;
               const lucroAtual = p - custosTotais;
               const lucroAtualPct = lucroAtual / p;
 
@@ -179,7 +190,7 @@
                 detalhesCalculo = {
                   custoBase: custo + emb,
                   freteTaxa: freteVendedor,
-                  taxaFixa: taxaFixaPlataforma,
+                  taxaFixa: custoOperacionalPlataforma,
                   comissaoVenda,
                   valorImposto,
                   lucroLiq: lucroAtual,
@@ -362,20 +373,43 @@
 
                       {platform === 'ML' && (
                         <>
-                          <div className="md:col-span-2 flex flex-wrap gap-x-8 gap-y-4 my-2 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                              <input type="checkbox" checked={isPremium} onChange={(e) => setIsPremium(e.target.checked)} className="w-5 h-5 accent-orange-500 rounded cursor-pointer" />
-                              <span className={`text-sm font-semibold transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                                Anúncio Premium <span className="text-xs opacity-60 font-normal block">(Adiciona 5% na comissão)</span>
-                              </span>
-                            </label>
+                          <div className={`md:col-span-2 space-y-5 my-2 p-5 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
+                            
+                            <div className="space-y-3">
+                                <label className={theme.label}>Tipo de Anúncio</label>
+                                <div className={`flex border rounded-xl p-1 ${isDarkMode ? 'bg-[#030712] border-slate-800' : 'bg-white border-slate-200'}`}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPremium(false)}
+                                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex justify-center items-center gap-2 ${!isPremium ? 'bg-yellow-400 text-yellow-950 shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
+                                    >
+                                        <i className={!isPremium ? "ph-fill ph-star" : "ph ph-star"}></i> Clássico
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPremium(true)}
+                                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex justify-center items-center gap-2 ${isPremium ? 'bg-orange-500 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
+                                    >
+                                        <i className={isPremium ? "ph-fill ph-crown" : "ph ph-crown"}></i> Premium <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded ml-1">+5%</span>
+                                    </button>
+                                </div>
+                            </div>
 
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                              <input type="checkbox" checked={ofereceFreteGratis} onChange={(e) => setOfereceFreteGratis(e.target.checked)} className="w-5 h-5 accent-orange-500 rounded cursor-pointer" />
-                              <span className={`text-sm font-semibold transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                                Oferecer Frete Grátis <span className="text-xs opacity-60 font-normal block">(Opcional se produto abaixo de R$ 79)</span>
-                              </span>
-                            </label>
+                            <div className={`flex items-center justify-between pt-4 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+                                <div>
+                                    <span className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                        Oferecer Frete Grátis e Rápido
+                                    </span>
+                                    <span className="text-xs opacity-60 font-normal block">(Estratégia agressiva p/ produtos abaixo de R$ 79)</span>
+                                </div>
+                                <div
+                                    onClick={() => setOfereceFreteGratis(!ofereceFreteGratis)}
+                                    className={`w-14 h-7 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${ofereceFreteGratis ? 'bg-orange-500' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-300')}`}
+                                >
+                                    <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${ofereceFreteGratis ? 'translate-x-7' : 'translate-x-0'}`}></div>
+                                </div>
+                            </div>
+
                           </div>
 
                           <div className="space-y-2">
@@ -424,10 +458,12 @@
                             R$ {resultado.precoSugerido.toFixed(2).replace('.', ',')}
                           </h2>
                           {resultado.precoSugerido >= 79 && platform === 'ML' && (
-                              <p className="text-green-400 text-sm font-bold mb-6">✓ Frete Grátis Obrigatório Ativado</p>
+                              <p className="text-green-400 text-sm font-bold mb-6">✓ Frete Grátis e Rápido Obrigatório</p>
                           )}
                           {resultado.precoSugerido < 79 && platform === 'ML' && (
-                              <p className="text-slate-400 text-sm mb-6">Frete por conta do comprador (Abaixo de R$ 79)</p>
+                              <p className="text-slate-400 text-sm mb-6">
+                                  {ofereceFreteGratis ? '✓ Frete Grátis e Rápido Opcional Ativado' : 'Frete Padrão (O comprador paga o envio)'}
+                              </p>
                           )}
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm md:text-base mt-4">
@@ -448,7 +484,7 @@
 
                             {platform === 'ML' && resultado.taxaFixa > 0 && (
                                 <div className={`flex justify-between items-center border-b pb-2 ${theme.resultItemBorder}`}>
-                                  <span className="text-slate-400">Taxa Fixa (Abaixo R$ 79):</span>
+                                  <span className="text-slate-400">Custo Operacional ML:</span>
                                   <span className="font-semibold text-red-400">- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span>
                                 </div>
                             )}
@@ -469,7 +505,7 @@
                             <h3 className="text-slate-300 font-bold uppercase tracking-wide text-xs mb-4">Composição do Preço</h3>
                             <div className="space-y-3 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-slate-400">Custos Fixos (Produto + Emb + Frete + Taxa Fixa)</span>
+                                <span className="text-slate-400">Custos Fixos (Produto + Emb + Frete + Operacional)</span>
                                 <span className="font-semibold text-slate-200">R$ {(resultado.custoBase + resultado.freteTaxa + resultado.taxaFixa).toFixed(2).replace('.', ',')}</span>
                               </div>
                               <div className="flex justify-between">
@@ -510,7 +546,7 @@
                 </div>
 
                 <p className={`text-center text-sm mt-8 ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>
-                  Esta ferramenta calcula os custos dinamicamente utilizando as regras oficiais vigentes (Mercado Livre e Shopee).
+                  Ferramenta 100% atualizada com os novos Custos Operacionais do ML de 04/03/2026.
                 </p>
 
               </div>
