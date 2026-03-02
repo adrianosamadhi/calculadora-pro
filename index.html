@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=6">
+    <link rel="manifest" href="manifest.json?v=7">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,7 +22,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- DADOS DAS TABELAS (Extraídos das suas imagens) ---
         const mlRates = {
           "Até 0,3 kg": [5.65, 6.35, 7.75, 12.35, 13.35, 15.45, 16.45, 20.95],
           "De 0,3 a 0,5 kg": [5.95, 6.75, 7.95, 13.25, 15.45, 17.65, 18.85, 23.55],
@@ -62,14 +61,12 @@
         const parsePercent = (val) => Number(val.replace(',', '.')) || 0;
 
         function App() {
-          // --- ESTADOS DE LOGIN ---
           const [isLoggedIn, setIsLoggedIn] = useState(false);
           const [emailLogin, setEmailLogin] = useState('');
           const [password, setPassword] = useState('Calculadora@123');
           const [showPassword, setShowPassword] = useState(false);
           const [authError, setAuthError] = useState('');
 
-          // --- ESTADOS DA CALCULADORA ---
           const [isDarkMode, setIsDarkMode] = useState(true);
           const [platform, setPlatform] = useState('ML'); 
           
@@ -78,7 +75,6 @@
           const [imposto, setImposto] = useState('');
           const [lucroDesejado, setLucroDesejado] = useState('20');
           
-          // Específicos do ML
           const [taxaMarketplace, setTaxaMarketplace] = useState('14'); 
           const [pesoProduto, setPesoProduto] = useState('De 1 a 1,5 kg'); 
           const [isPremium, setIsPremium] = useState(false);
@@ -130,7 +126,6 @@
             let melhorPreco = null;
             let detalhesCalculo = null;
 
-            // Busca do Preço Ideal
             for (let p = custo + emb; p <= 15000; p += 0.01) {
               let comissaoVenda = 0;
               let taxaFixaPlataforma = 0;
@@ -155,25 +150,22 @@
                 comissaoVenda = p * comissaoPctReal;
               } 
               else if (platform === 'ML') {
-                // Se for Premium, soma 5% na comissão base digitada
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
-                // Pega o custo do frete na tabela baseado no peso e no preço
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
                 let valorFreteTabela = mlRates[pesoProduto][tierIdx];
                 nomeFaixa = mlTierNames[tierIdx];
 
-                // REGRAS OFICIAIS DE FRETE DO ML
                 if (p < 79) {
-                    taxaFixaPlataforma = 6.75; // Taxa fixa obrigatória abaixo de 79
+                    taxaFixaPlataforma = 6.75; 
                     if (ofereceFreteGratis) {
-                        freteVendedor = valorFreteTabela; // Vendedor assumiu o frete
+                        freteVendedor = valorFreteTabela; 
                     }
                 } else {
-                    taxaFixaPlataforma = 0; // Acima de 79 a taxa some
-                    freteVendedor = valorFreteTabela; // Frete grátis passa a ser obrigatório
+                    taxaFixaPlataforma = 0; 
+                    freteVendedor = valorFreteTabela; 
                 }
               }
 
@@ -223,7 +215,6 @@
             composicaoBg: `mt-6 p-5 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-800/50 border-slate-700'}`,
           };
 
-          // TELA DE LOGIN
           if (!isLoggedIn) {
               return (
                   <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -261,7 +252,6 @@
               );
           }
 
-          // TELA DA CALCULADORA (SEU VISUAL ORIGINAL)
           return (
             <div className={`min-h-screen py-10 px-4 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
               <div className="max-w-4xl mx-auto relative">
@@ -350,7 +340,7 @@
                       <div className="space-y-2">
                         <label className={`${theme.label} flex justify-between`}>
                           <span>Imposto sobre a Venda</span>
-                          <span className={`text-xs font-normal mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>(MEI = deixe 0)</span>
+                          <span className={`text-xs font-normal mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>(MEI = deixe vazio)</span>
                         </label>
                         <div className="relative">
                           <input type="text" value={imposto} onChange={handlePercentChange(setImposto)} placeholder="0" className={`${theme.input} pl-4 pr-11`} />
@@ -370,7 +360,6 @@
                         </div>
                       </div>
 
-                      {/* Configurações Específicas do ML */}
                       {platform === 'ML' && (
                         <>
                           <div className="md:col-span-2 flex flex-wrap gap-x-8 gap-y-4 my-2 p-4 rounded-xl border border-slate-700/50 bg-slate-800/20">
@@ -384,7 +373,7 @@
                             <label className="flex items-center gap-3 cursor-pointer group">
                               <input type="checkbox" checked={ofereceFreteGratis} onChange={(e) => setOfereceFreteGratis(e.target.checked)} className="w-5 h-5 accent-orange-500 rounded cursor-pointer" />
                               <span className={`text-sm font-semibold transition-colors ${isDarkMode ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-slate-900'}`}>
-                                Oferecer Frete Grátis <span className="text-xs opacity-60 font-normal block">(Opcional se produto < R$ 79)</span>
+                                Oferecer Frete Grátis <span className="text-xs opacity-60 font-normal block">(Opcional se produto abaixo de R$ 79)</span>
                               </span>
                             </label>
                           </div>
