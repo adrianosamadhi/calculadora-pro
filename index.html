@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=13">
+    <link rel="manifest" href="manifest.json?v=14">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,7 +22,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- TABELA OFICIAL ML COMPLETA ---
         const mlRates = [
             { maxWeight: 0.3, label: "Até 0,3 kg", rates: [5.65, 6.55, 7.75, 12.35, 14.35, 16.45, 18.45, 20.95], fastFreeRate: 12.35 },
             { maxWeight: 0.5, label: "De 0,3 a 0,5 kg", rates: [5.95, 6.65, 7.85, 13.25, 15.45, 17.65, 19.85, 22.55], fastFreeRate: 13.25 },
@@ -57,14 +56,8 @@
 
         const mlPriceTiers = [18.99, 48.99, 78.99, 99.99, 119.99, 149.99, 199.99, Infinity];
         const mlTierNames = [
-          "Até R$ 18,99", 
-          "R$ 19 a R$ 48,99", 
-          "R$ 49 a R$ 78,99", 
-          "R$ 79 a R$ 99,99", 
-          "R$ 100 a R$ 119,99", 
-          "R$ 120 a R$ 149,99", 
-          "R$ 150 a R$ 199,99", 
-          "Acima de R$ 200"
+          "Até R$ 18,99", "R$ 19 a R$ 48,99", "R$ 49 a R$ 78,99", "R$ 79 a R$ 99,99", 
+          "R$ 100 a R$ 119,99", "R$ 120 a R$ 149,99", "R$ 150 a R$ 199,99", "Acima de R$ 200"
         ];
 
         const formatCurrency = (value) => {
@@ -97,9 +90,16 @@
           const [lucroDesejado, setLucroDesejado] = useState('20');
           
           const [taxaMarketplace, setTaxaMarketplace] = useState('14'); 
-          const [pesoInput, setPesoInput] = useState(''); // Agora é um input de digitação
+          const [pesoInput, setPesoInput] = useState(''); 
           const [isPremium, setIsPremium] = useState(false);
           const [ofereceFreteGratis, setOfereceFreteGratis] = useState(false);
+
+          // Estados do Ajudante de Cubagem
+          const [showCubagem, setShowCubagem] = useState(false);
+          const [dimComprimento, setDimComprimento] = useState('');
+          const [dimLargura, setDimLargura] = useState('');
+          const [dimAltura, setDimAltura] = useState('');
+          const [pesoFisico, setPesoFisico] = useState('');
 
           const [resultado, setResultado] = useState(null);
           const [erro, setErro] = useState(null);
@@ -129,6 +129,19 @@
             setter(val);
           };
 
+          const aplicarCubagem = () => {
+              const c = Number(dimComprimento.replace(',', '.')) || 0;
+              const l = Number(dimLargura.replace(',', '.')) || 0;
+              const a = Number(dimAltura.replace(',', '.')) || 0;
+              const pFisico = Number(pesoFisico.replace(',', '.')) || 0;
+              
+              const pCubico = (c * l * a) / 6000;
+              const pesoFinal = Math.max(pFisico, pCubico);
+              
+              setPesoInput(pesoFinal.toFixed(2).replace('.', ','));
+              setShowCubagem(false);
+          };
+
           const calcular = () => {
             setErro(null);
             setResultado(null);
@@ -152,7 +165,7 @@
             }
 
             if (platform === 'ML' && peso <= 0) {
-              setErro("Por favor, insira um peso válido (ex: 0,5).");
+              setErro("Por favor, insira um peso válido (ex: 0,5) ou calcule a cubagem.");
               return;
             }
 
@@ -187,14 +200,12 @@
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
-                // Encontrar a faixa de preço
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
                 nomeFaixaPreco = mlTierNames[tierIdx];
 
-                // Encontrar a faixa de peso
                 let pesoObj = mlRates.find(item => peso <= item.maxWeight);
-                if (!pesoObj) pesoObj = mlRates[mlRates.length - 1]; // Fallback para > 150kg
+                if (!pesoObj) pesoObj = mlRates[mlRates.length - 1]; 
                 nomeFaixaPeso = pesoObj.label;
                 
                 let valorTarifaAtual = pesoObj.rates[tierIdx];
@@ -472,14 +483,53 @@
                             </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <label className={theme.label}>Peso do Produto (kg)</label>
+                          <div className="space-y-2 relative">
+                            <div className="flex justify-between items-center mb-1">
+                                <label className={theme.label}>Peso do Produto</label>
+                                <button 
+                                    onClick={() => setShowCubagem(!showCubagem)}
+                                    className="text-[11px] font-bold text-orange-500 hover:text-orange-400 flex items-center gap-1 bg-orange-500/10 px-2.5 py-1 rounded-md transition-colors"
+                                >
+                                    <i className="ph-bold ph-ruler"></i> Calcular Cubagem
+                                </button>
+                            </div>
                             <div className="relative">
                               <input type="text" value={pesoInput} onChange={(e) => setPesoInput(e.target.value.replace(/[^0-9,]/g, ''))} placeholder="Ex: 0,5" className={`${theme.input} pl-4 pr-11`} />
                               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className={`font-bold ${theme.icon}`}>kg</span>
                               </div>
                             </div>
+                            
+                            {/* CAIXA DE CUBAGEM (Escondida por padrão) */}
+                            {showCubagem && (
+                                <div className={`absolute z-20 top-full mt-2 w-full p-4 rounded-xl border shadow-2xl ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-sm font-bold text-orange-500 uppercase tracking-wider">Assistente de Cubagem</h4>
+                                        <button onClick={() => setShowCubagem(false)} className="text-slate-400 hover:text-slate-200"><i className="ph-bold ph-x text-lg"></i></button>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3 mb-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">Comp. (cm)</label>
+                                            <input type="text" value={dimComprimento} onChange={(e) => setDimComprimento(e.target.value.replace(/[^0-9,]/g, ''))} className={`w-full p-2 text-sm rounded-lg border outline-none focus:border-orange-500 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'}`} placeholder="0" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">Larg. (cm)</label>
+                                            <input type="text" value={dimLargura} onChange={(e) => setDimLargura(e.target.value.replace(/[^0-9,]/g, ''))} className={`w-full p-2 text-sm rounded-lg border outline-none focus:border-orange-500 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'}`} placeholder="0" />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">Alt. (cm)</label>
+                                            <input type="text" value={dimAltura} onChange={(e) => setDimAltura(e.target.value.replace(/[^0-9,]/g, ''))} className={`w-full p-2 text-sm rounded-lg border outline-none focus:border-orange-500 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'}`} placeholder="0" />
+                                        </div>
+                                    </div>
+                                    <div className="mb-5">
+                                        <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">Peso Físico na Balança (kg)</label>
+                                        <input type="text" value={pesoFisico} onChange={(e) => setPesoFisico(e.target.value.replace(/[^0-9,]/g, ''))} className={`w-full p-2 text-sm rounded-lg border outline-none focus:border-orange-500 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'}`} placeholder="Ex: 1,5" />
+                                    </div>
+                                    <button onClick={aplicarCubagem} className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-95">
+                                        Calcular e Aplicar Maior Peso
+                                    </button>
+                                </div>
+                            )}
                           </div>
                         </>
                       )}
