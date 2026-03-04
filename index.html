@@ -4,13 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=26">
+    <link rel="manifest" href="manifest.json?v=29">
     <link rel="apple-touch-icon" href="icone-192.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background-color: #0B1120; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -21,6 +25,15 @@
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
+        const { createClient } = window.supabase;
+
+        // AS SUAS CHAVES DO SUPABASE
+        const SUPABASE_URL = 'https://pttckajgbilxtlvhrdsm.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0dGNrYWpnYmlseHRsdmhyZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzkyMDYsImV4cCI6MjA4NzcxNTIwNn0.8buGbTrL0_nsFW9B0JPf_PyFeYbvAbe2UjMISpdQ6Os';
+        
+        // Inicializa o Banco de Dados (Auth)
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // -----------------------------------------------------------
 
         const mlRates = [
             { maxWeight: 0.3, label: "Até 0,3 kg", rates: [5.65, 6.55, 7.75, 12.35, 14.35, 16.45, 18.45, 20.95], fastFreeRate: 12.35 },
@@ -80,6 +93,7 @@
           const [password, setPassword] = useState('Calculadora@123');
           const [showPassword, setShowPassword] = useState(false);
           const [authError, setAuthError] = useState('');
+          const [isLoading, setIsLoading] = useState(false); 
 
           const [isDarkMode, setIsDarkMode] = useState(true);
           const [platform, setPlatform] = useState('ML'); 
@@ -103,18 +117,42 @@
           const [resultado, setResultado] = useState(null);
           const [erro, setErro] = useState(null);
 
-          const handleLogin = (e) => {
+          // LÓGICA DE LOGIN COM SUPABASE AUTH (ATUALIZADA)
+          const handleLogin = async (e) => {
               e.preventDefault();
               setAuthError('');
-              if (password === 'Calculadora@123' || password === '735589') {
-                  setIsLoggedIn(true);
-                  localStorage.setItem('calculadoraPro_auth', 'true'); 
-              } else {
-                  setAuthError('E-mail ou senha incorretos. Verifique os dados.');
+              
+              if (!emailLogin || !password) {
+                  setAuthError('Por favor, preencha e-mail e senha.');
+                  return;
+              }
+
+              setIsLoading(true);
+
+              try {
+                  // Usa a API de Autenticação do Supabase para fazer o login real
+                  const { data, error } = await supabase.auth.signInWithPassword({
+                      email: emailLogin.trim(),
+                      password: password
+                  });
+
+                  if (error) {
+                      // Se o e-mail não existir na lista "Users" ou a senha estiver errada
+                      setAuthError('Acesso Negado: E-mail ou senha incorretos.');
+                  } else if (data.user) {
+                      // Login com sucesso!
+                      setIsLoggedIn(true);
+                      localStorage.setItem('calculadoraPro_auth', 'true');
+                  }
+              } catch (err) {
+                  setAuthError('Erro de conexão. Verifique sua internet.');
+              } finally {
+                  setIsLoading(false);
               }
           };
 
-          const handleLogout = () => {
+          const handleLogout = async () => {
+              await supabase.auth.signOut(); // Desloga do Supabase
               setIsLoggedIn(false);
               localStorage.removeItem('calculadoraPro_auth'); 
           };
@@ -301,10 +339,12 @@
                                       <span>Aviso: Use o e-mail da compra. Senha: <strong className="text-orange-400">Calculadora@123</strong></span>
                                   </p>
                               </div>
-                              {authError && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2"><i className="ph ph-warning-circle"></i>{authError}</div>}
-                              <button type="submit" className="w-full py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95 text-sm md:text-base">
-                                  Entrar no Sistema
+                              {authError && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2"><i className="ph ph-warning-circle text-lg"></i>{authError}</div>}
+                              
+                              <button type="submit" disabled={isLoading} className={`w-full py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl font-bold shadow-lg transition-all text-sm md:text-base flex justify-center items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}>
+                                  {isLoading ? <i className="ph ph-spinner animate-spin text-xl"></i> : 'Entrar no Sistema'}
                               </button>
+
                           </form>
                       </div>
                   </div>
@@ -331,7 +371,7 @@
                     </h1>
                 </div>
 
-                {/* CONTAINER PRINCIPAL DA CALCULADORA - mb-4 (Removido o excesso de margem inferior) */}
+                {/* CONTAINER PRINCIPAL DA CALCULADORA - mb-4 */}
                 <div className={`rounded-3xl shadow-xl overflow-hidden border mb-4 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
                   
                   {/* ABAS */}
