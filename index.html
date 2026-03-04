@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=19">
+    <link rel="manifest" href="manifest.json?v=20">
     <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -270,7 +270,6 @@
             composicaoBg: `mt-3 p-3 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-800/50 border-slate-700'}`,
           };
 
-          // --- CAIXA DE LOGIN RESTAURADA PARA O TAMANHO E DESIGN ORIGINAIS ---
           if (!isLoggedIn) {
               return (
                   <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -314,7 +313,6 @@
                   </div>
               );
           }
-          // --------------------------------------------------------------------------
 
           return (
             <div className={`min-h-screen py-2 md:py-3 px-3 md:px-4 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
@@ -340,10 +338,12 @@
                   {isDarkMode ? <i className="ph-fill ph-sun text-lg md:text-base"></i> : <i className="ph-fill ph-moon text-lg md:text-base"></i>}
                 </button>
 
-                {/* LOGO E TÍTULO COMPACTOS */}
-                <div className="text-center mb-3 md:mb-4 pt-12 md:pt-0 flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3">
-                  <img src="logo.png" alt="Logo" className="h-16 md:h-10 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]" onError={(e) => e.target.style.display='none'} />
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400">
+                {/* LOGO E TÍTULO (Logo absolute no PC para não empurrar a tela) */}
+                <div className="relative mb-4 md:mb-5 pt-12 md:pt-2 flex flex-col md:flex-row items-center justify-center">
+                  <div className="md:absolute md:left-2 md:top-1/2 md:-translate-y-1/2 mb-2 md:mb-0 z-10 flex justify-center w-full md:w-auto">
+                    <img src="logo.png" alt="Logo" className="h-20 md:h-20 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]" onError={(e) => e.target.style.display='none'} />
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400 text-center w-full">
                     Calculadora de Precificação
                   </h1>
                 </div>
