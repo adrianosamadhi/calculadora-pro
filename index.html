@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Precificação Marketplaces - Adriano Santos</title>
-    <link rel="manifest" href="manifest.json?v=29">
+    <link rel="manifest" href="manifest.json?v=30">
     <link rel="apple-touch-icon" href="icone-192.png">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background-color: #0B1120; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -117,7 +114,6 @@
           const [resultado, setResultado] = useState(null);
           const [erro, setErro] = useState(null);
 
-          // LÓGICA DE LOGIN COM SUPABASE AUTH (ATUALIZADA)
           const handleLogin = async (e) => {
               e.preventDefault();
               setAuthError('');
@@ -130,17 +126,14 @@
               setIsLoading(true);
 
               try {
-                  // Usa a API de Autenticação do Supabase para fazer o login real
                   const { data, error } = await supabase.auth.signInWithPassword({
                       email: emailLogin.trim(),
                       password: password
                   });
 
                   if (error) {
-                      // Se o e-mail não existir na lista "Users" ou a senha estiver errada
                       setAuthError('Acesso Negado: E-mail ou senha incorretos.');
                   } else if (data.user) {
-                      // Login com sucesso!
                       setIsLoggedIn(true);
                       localStorage.setItem('calculadoraPro_auth', 'true');
                   }
@@ -152,7 +145,7 @@
           };
 
           const handleLogout = async () => {
-              await supabase.auth.signOut(); // Desloga do Supabase
+              await supabase.auth.signOut(); 
               setIsLoggedIn(false);
               localStorage.removeItem('calculadoraPro_auth'); 
           };
@@ -218,6 +211,7 @@
               let nomeFaixaPeso = "";
 
               if (platform === 'SHOPEE') {
+                // Automação Perfeita da Tabela Oficial da Shopee
                 if (p <= 79.99) {
                   comissaoPctReal = 0.20;
                   custoOperacionalPlataforma = 4;
@@ -355,7 +349,6 @@
             <div className={`min-h-screen pt-12 pb-4 px-4 flex flex-col items-center font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-200' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800'}`}>
               <div className="w-full max-w-2xl mx-auto relative">
                 
-                {/* BOTÕES DE TOPO - FIXOS ABSOLUTOS */}
                 <button onClick={handleLogout} className={`absolute -top-8 md:-top-10 left-0 p-2 z-50 rounded-full transition-all duration-300 flex items-center justify-center ${isDarkMode ? 'text-rose-400 hover:bg-slate-800' : 'text-rose-500 hover:bg-slate-200'}`} title="Sair">
                   <i className="ph-fill ph-lock-key text-xl"></i>
                 </button>
@@ -363,7 +356,6 @@
                   {isDarkMode ? <i className="ph-fill ph-sun text-xl"></i> : <i className="ph-fill ph-moon text-xl"></i>}
                 </button>
 
-                {/* LOGO E TÍTULO LADO A LADO - CENTRALIZADO (TAMANHO APERTADO) */}
                 <div className="flex flex-row items-center justify-center gap-3 mb-3 z-10 relative">
                     <img src="logo.png" alt="Logo" className="h-14 md:h-16 object-contain drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]" onError={(e) => e.target.style.display='none'} />
                     <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-400">
@@ -371,10 +363,8 @@
                     </h1>
                 </div>
 
-                {/* CONTAINER PRINCIPAL DA CALCULADORA - mb-4 */}
                 <div className={`rounded-3xl shadow-xl overflow-hidden border mb-4 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
                   
-                  {/* ABAS */}
                   <div className="flex w-full">
                     <button onClick={() => setPlatform('ML')} className={`flex-1 py-2 text-sm md:text-base font-bold transition-all duration-300 flex justify-center items-center gap-1.5 ${platform === 'ML' ? 'bg-yellow-400 text-yellow-950 border-b-4 border-yellow-600' : isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><i className="ph-bold ph-shopping-bag text-lg"></i> Mercado Livre</button>
                     <button onClick={() => setPlatform('SHOPEE')} className={`flex-1 py-2 text-sm md:text-base font-bold transition-all duration-300 flex justify-center items-center gap-1.5 ${platform === 'SHOPEE' ? 'bg-orange-500 text-white border-b-4 border-orange-700' : isDarkMode ? 'bg-slate-950 text-slate-500 hover:bg-slate-800' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}><i className="ph-bold ph-shopping-bag text-lg"></i> Shopee</button>
@@ -446,7 +436,6 @@
                           <div className="space-y-0.5 relative">
                             <div className="flex justify-between items-center mb-0.5">
                                 <label className={theme.label}>Peso (kg)</label>
-                                {/* NOVO BOTÃO DE CUBAGEM (MAIOR E DESTACADO) */}
                                 <button onClick={() => setShowCubagem(!showCubagem)} className="text-[10px] md:text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 flex items-center gap-1.5 px-3 py-1 rounded-lg transition-colors shadow-sm">
                                     <i className="ph-bold ph-ruler"></i> Calcular Cubagem
                                 </button>
@@ -493,19 +482,29 @@
                           {resultado.precoSugerido >= 79 && platform === 'ML' && <p className="text-green-400 text-[10px] md:text-xs font-bold mb-2">✓ Frete Grátis Obrigatório</p>}
                           {resultado.precoSugerido < 79 && platform === 'ML' && <p className="text-slate-400 text-[10px] md:text-xs mb-2">{ofereceFreteGratis ? '✓ Frete Grátis Ativado' : 'Frete Padrão (Comprador paga)'}</p>}
 
+                          {/* RÓTULOS CORRIGIDOS AQUI! */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-1.5 text-xs mt-2">
                             <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">Custo + Emb:</span><span className="font-semibold text-slate-200">R$ {resultado.custoBase.toFixed(2).replace('.', ',')}</span></div>
-                            <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">{platform === 'ML' ? <>Frete <span className="text-[9px] text-slate-500 block truncate max-w-[100px]" title={resultado.faixaAplicada}>({resultado.faixaAplicada})</span></> : 'Taxa Fixa:'}</span><span className="font-semibold text-red-400">- R$ {resultado.freteTaxa.toFixed(2).replace('.', ',')}</span></div>
-                            {platform === 'ML' && resultado.taxaFixa > 0 && <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">Tarifa Fixa:</span><span className="font-semibold text-red-400">- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span></div>}
+                            
+                            {platform === 'ML' && (
+                                <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">Frete <span className="text-[9px] text-slate-500 block truncate max-w-[100px]" title={resultado.faixaAplicada}>({resultado.faixaAplicada})</span></span><span className="font-semibold text-red-400">- R$ {resultado.freteTaxa.toFixed(2).replace('.', ',')}</span></div>
+                            )}
+
+                            {resultado.taxaFixa > 0 && (
+                                <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">{platform === 'SHOPEE' ? 'Taxa Fixa:' : 'Tarifa Fixa:'}</span><span className="font-semibold text-red-400">- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span></div>
+                            )}
+
                             <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">Comissão ({resultado.margemUsada.toFixed(0)}%):</span><span className="font-semibold text-red-400">- R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span></div>
+                            
                             <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}><span className="text-slate-400">Impostos:</span><span className="font-semibold text-red-400">- R$ {resultado.valorImposto.toFixed(2).replace('.', ',')}</span></div>
                           </div>
 
                           <div className={theme.composicaoBg}>
                             <h3 className="text-slate-300 font-bold uppercase tracking-wide text-[10px] mb-1.5">Composição do Preço</h3>
                             <div className="space-y-1 text-[11px]">
-                              <div className="flex justify-between"><span className="text-slate-400">Custos Fixos Totais</span><span className="font-semibold text-slate-200">R$ {(resultado.custoBase + resultado.freteTaxa + resultado.taxaFixa).toFixed(2).replace('.', ',')}</span></div>
-                              <div className="flex justify-between"><span className="text-slate-400">Taxa do Marketplace</span><span className="font-semibold text-slate-200">R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-400">Custo Produto + Emb</span><span className="font-semibold text-slate-200">R$ {resultado.custoBase.toFixed(2).replace('.', ',')}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-400">Comissão do App</span><span className="font-semibold text-slate-200">R$ {resultado.comissaoVenda.toFixed(2).replace('.', ',')}</span></div>
+                              <div className="flex justify-between"><span className="text-slate-400">Taxa Fixa / Frete</span><span className="font-semibold text-slate-200">R$ {(resultado.taxaFixa + resultado.freteTaxa).toFixed(2).replace('.', ',')}</span></div>
                               <div className="flex justify-between"><span className="text-slate-400">Imposto</span><span className="font-semibold text-slate-200">R$ {resultado.valorImposto.toFixed(2).replace('.', ',')}</span></div>
                               <div className={`flex justify-between pt-1 border-t ${theme.resultItemBorder}`}><span className="text-slate-300 font-bold">Total de Deduções</span><span className="font-bold text-orange-400">{(resultado.margemUsada + (parsePercent(imposto) || 0) + (parsePercent(lucroDesejado) || 0)).toFixed(2).replace('.', ',')}%</span></div>
                             </div>
