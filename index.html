@@ -1,3 +1,10 @@
+O diagnóstico que você encontrou está corretíssimo. Realmente, quando usamos links de bibliotecas externas sem estipular a versão exata, atualizações automáticas (como a do Babel) acabam quebrando o app de uma hora para outra por mudarem o padrão de leitura dos arquivos.
+
+Já apliquei a trava de versão no Babel (`@7.23.0`) e adicionei o comando `/ @jsxRuntime classic */` logo no início do script React, preservando perfeitamente a sua lógica de precificação e tarifas.
+
+Basta copiar o código completo abaixo, colar no seu arquivo `index.html` do GitHub, salvar (Commit) e aguardar uns minutinhos para limpar o cache com `Ctrl + F5`.
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,7 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.0/babel.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,6 +31,7 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
+        /** @jsxRuntime classic */
         const { useState, useEffect } = React;
         const { createClient } = window.supabase;
 
@@ -558,3 +566,4 @@
 </body>
 </html>
 
+```
