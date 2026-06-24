@@ -1,10 +1,3 @@
-O diagnóstico que você encontrou está corretíssimo. Realmente, quando usamos links de bibliotecas externas sem estipular a versão exata, atualizações automáticas (como a do Babel) acabam quebrando o app de uma hora para outra por mudarem o padrão de leitura dos arquivos.
-
-Já apliquei a trava de versão no Babel (`@7.23.0`) e adicionei o comando `/ @jsxRuntime classic */` logo no início do script React, preservando perfeitamente a sua lógica de precificação e tarifas.
-
-Basta copiar o código completo abaixo, colar no seu arquivo `index.html` do GitHub, salvar (Commit) e aguardar uns minutinhos para limpar o cache com `Ctrl + F5`.
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
