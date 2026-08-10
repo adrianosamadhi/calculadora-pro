@@ -178,22 +178,16 @@
             const emb = parseCurrency(embalagem);
             const impostoPct = parsePercent(imposto) / 100;
             const lucroPct = parsePercent(lucroDesejado) / 100;
-            const taxaMLPct = parsePercent(taxaMarketplace) / 100;
+            
+            // Pega a taxa do input SOMENTE se for ML. Se for Shopee, usa 14% base sempre.
+            const taxaMLPct = platform === 'ML' ? (parsePercent(taxaMarketplace) / 100) : 0.14; 
             const peso = parseWeight(pesoInput);
 
-            // Trava de segurança para não somar mais de 100% (evita loop infinito)
-            const basePct = platform === 'ML' 
-                ? (impostoPct + lucroPct + taxaMLPct + (isPremium ? 0.05 : 0)) 
-                : (impostoPct + lucroPct + taxaMLPct + (isShopeeFreeShipping ? 0.06 : 0));
-            
-            if (basePct >= 1) {
-              setErro("A soma das margens/taxas não pode ser 100% ou mais.");
-              return;
-            }
             if (custo === 0) {
               setErro("Por favor, insira o Custo do Produto.");
               return;
             }
+
             if (platform === 'ML' && peso <= 0) {
               setErro("Por favor, insira um peso válido.");
               return;
@@ -212,36 +206,50 @@
 
               if (platform === 'SHOPEE') {
                 if (isShopeeFreeShipping) {
-                    // TABELA DE REGRAS SHOPEE 2026 (Com Frete Grátis)
+                    // TABELA DE REGRAS SHOPEE (Com Frete Grátis)
                     if (p <= 79.99) {
-                        comissaoPctReal = taxaMLPct + 0.06; // Soma 6% na base
+                        comissaoPctReal = 0.20; // 20%
                         custoOperacionalPlataforma = 4;
                         nomeFaixaPreco = "Frete Grátis Extra (Até R$ 79,99)";
                     } else if (p <= 99.99) {
-                        comissaoPctReal = taxaMLPct; // Cai pros 14%
+                        comissaoPctReal = 0.14; // Cai pros 14%
                         custoOperacionalPlataforma = 16;
                         nomeFaixaPreco = "Frete Grátis Extra (R$ 80 a R$ 99,99)";
                     } else if (p <= 199.99) {
-                        comissaoPctReal = taxaMLPct;
+                        comissaoPctReal = 0.14;
                         custoOperacionalPlataforma = 20;
                         nomeFaixaPreco = "Frete Grátis Extra (R$ 100 a R$ 199,99)";
                     } else {
-                        comissaoPctReal = taxaMLPct;
+                        comissaoPctReal = 0.14;
                         custoOperacionalPlataforma = 26;
                         nomeFaixaPreco = "Frete Grátis Extra (Acima de R$ 200)";
                     }
                 } else {
                     // REGRA PADRÃO (Sem frete grátis)
-                    comissaoPctReal = taxaMLPct;
+                    comissaoPctReal = 0.14;
                     custoOperacionalPlataforma = 4;
                     nomeFaixaPreco = "Taxa Padrão Shopee";
                 }
                 
                 comissaoVenda = p * comissaoPctReal;
+                
+                // Validação para não quebrar a conta da Shopee
+                const baseShopee = impostoPct + lucroPct + comissaoPctReal;
+                if (baseShopee >= 1) {
+                    setErro("A soma das margens não pode ser 100% ou mais.");
+                    return;
+                }
 
               } else if (platform === 'ML') {
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
+                
+                // Validação para não quebrar a conta do ML
+                const baseML = impostoPct + lucroPct + comissaoPctReal;
+                if (baseML >= 1) {
+                    setErro("A soma das margens não pode ser 100% ou mais.");
+                    return;
+                }
                 
                 let tierIdx = mlPriceTiers.findIndex(t => p <= t);
                 if (tierIdx === -1) tierIdx = mlPriceTiers.length - 1;
@@ -292,7 +300,7 @@
             if (melhorPreco) {
               setResultado({ precoSugerido: melhorPreco, ...detalhesCalculo });
             } else {
-              setErro("Não foi possível encontrar um preço viável.");
+              if (!erro) setErro("Não foi possível encontrar um preço viável.");
             }
           };
 
@@ -417,17 +425,20 @@
                         </div>
                       </div>
 
-                      <div className="space-y-0.5">
-                        <label className={theme.label}>{platform === 'ML' ? 'Taxa Categoria (%)' : 'Taxa Categoria / Base (%)'}</label>
-                        <div className="relative">
-                          <input type="text" value={taxaMarketplace} onChange={handlePercentChange(setTaxaMarketplace)} placeholder="14" className={`${theme.input} pl-3 pr-8`} />
-                          <i className={`ph-bold ph-percent text-base absolute right-3 top-2.5 ${theme.icon}`}></i>
+                      {/* CAIXA DE TAXA AGORA SÓ APARECE NO ML */}
+                      {platform === 'ML' && (
+                        <div className="space-y-0.5 animate-fade-in">
+                          <label className={theme.label}>Taxa Categoria (%)</label>
+                          <div className="relative">
+                            <input type="text" value={taxaMarketplace} onChange={handlePercentChange(setTaxaMarketplace)} placeholder="14" className={`${theme.input} pl-3 pr-8`} />
+                            <i className={`ph-bold ph-percent text-base absolute right-3 top-2.5 ${theme.icon}`}></i>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* --- SEÇÃO SHOPEE --- */}
                       {platform === 'SHOPEE' && (
-                        <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
+                        <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border animate-fade-in ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
                             <div className="space-y-0.5">
                                 <label className={theme.label}>Programa Frete Grátis Extra</label>
                                 <div className={`flex border rounded-xl p-1 ${isDarkMode ? 'bg-[#030712] border-slate-800' : 'bg-white border-slate-200'}`}>
@@ -441,7 +452,7 @@
                       {/* --- SEÇÃO MERCADO LIVRE --- */}
                       {platform === 'ML' && (
                         <>
-                          <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
+                          <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border animate-fade-in ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
                             <div className="space-y-0.5">
                                 <label className={theme.label}>Tipo de Anúncio</label>
                                 <div className={`flex border rounded-xl p-1 ${isDarkMode ? 'bg-[#030712] border-slate-800' : 'bg-white border-slate-200'}`}>
@@ -457,7 +468,7 @@
                             </div>
                           </div>
 
-                          <div className="space-y-0.5 relative">
+                          <div className="space-y-0.5 relative animate-fade-in">
                             <div className="flex justify-between items-center mb-0.5">
                                 <label className={theme.label}>Peso (kg)</label>
                                 <button onClick={() => setShowCubagem(!showCubagem)} className="text-[10px] md:text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 flex items-center gap-1.5 px-3 py-1 rounded-lg transition-colors shadow-sm">
