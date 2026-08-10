@@ -7,17 +7,11 @@
     <link rel="manifest" href="manifest.json?v=31">
     <link rel="apple-touch-icon" href="icone-192.png">
     
-    <!-- Tailwind e React -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- VERSÃO DO BABEL TRAVADA -->
     <script src="https://unpkg.com/@babel/standalone@7.23.0/babel.min.js"></script>
-    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -33,10 +27,8 @@
         const { useState, useEffect } = React;
         const { createClient } = window.supabase;
 
-        // AS SUAS CHAVES DO SUPABASE
         const SUPABASE_URL = 'https://pttckajgbilxtlvhrdsm.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0dGNrYWpnYmlseHRsdmhyZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzkyMDYsImV4cCI6MjA4NzcxNTIwNn0.8buGbTrL0_nsFW9B0JPf_PyFeYbvAbe2UjMISpdQ6Os';
-        
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const mlRates = [
@@ -109,8 +101,13 @@
           
           const [taxaMarketplace, setTaxaMarketplace] = useState('14'); 
           const [pesoInput, setPesoInput] = useState(''); 
+          
+          // Toggles ML
           const [isPremium, setIsPremium] = useState(false);
           const [ofereceFreteGratis, setOfereceFreteGratis] = useState(false);
+          
+          // Toggle Shopee
+          const [isShopeeFreeShipping, setIsShopeeFreeShipping] = useState(true);
 
           const [showCubagem, setShowCubagem] = useState(false);
           const [dimComprimento, setDimComprimento] = useState('');
@@ -184,18 +181,19 @@
             const taxaMLPct = parsePercent(taxaMarketplace) / 100;
             const peso = parseWeight(pesoInput);
 
-            const basePct = platform === 'ML' ? (impostoPct + lucroPct + taxaMLPct + (isPremium ? 0.05 : 0)) : (impostoPct + lucroPct + taxaMLPct); 
+            // Trava de segurança para não somar mais de 100% (evita loop infinito)
+            const basePct = platform === 'ML' 
+                ? (impostoPct + lucroPct + taxaMLPct + (isPremium ? 0.05 : 0)) 
+                : (impostoPct + lucroPct + taxaMLPct + (isShopeeFreeShipping ? 0.06 : 0));
             
             if (basePct >= 1) {
-              setErro("A soma das margens não pode ser 100% ou mais.");
+              setErro("A soma das margens/taxas não pode ser 100% ou mais.");
               return;
             }
-
             if (custo === 0) {
               setErro("Por favor, insira o Custo do Produto.");
               return;
             }
-
             if (platform === 'ML' && peso <= 0) {
               setErro("Por favor, insira um peso válido.");
               return;
@@ -213,20 +211,35 @@
               let nomeFaixaPeso = "";
 
               if (platform === 'SHOPEE') {
-                comissaoPctReal = taxaMLPct;
-                
-                if (p <= 79.99) {
-                  custoOperacionalPlataforma = 4;
-                } else if (p <= 99.99) {
-                  custoOperacionalPlataforma = 16;
-                } else if (p <= 199.99) {
-                  custoOperacionalPlataforma = 20;
+                if (isShopeeFreeShipping) {
+                    // TABELA DE REGRAS SHOPEE 2026 (Com Frete Grátis)
+                    if (p <= 79.99) {
+                        comissaoPctReal = taxaMLPct + 0.06; // Soma 6% na base
+                        custoOperacionalPlataforma = 4;
+                        nomeFaixaPreco = "Frete Grátis Extra (Até R$ 79,99)";
+                    } else if (p <= 99.99) {
+                        comissaoPctReal = taxaMLPct; // Cai pros 14%
+                        custoOperacionalPlataforma = 16;
+                        nomeFaixaPreco = "Frete Grátis Extra (R$ 80 a R$ 99,99)";
+                    } else if (p <= 199.99) {
+                        comissaoPctReal = taxaMLPct;
+                        custoOperacionalPlataforma = 20;
+                        nomeFaixaPreco = "Frete Grátis Extra (R$ 100 a R$ 199,99)";
+                    } else {
+                        comissaoPctReal = taxaMLPct;
+                        custoOperacionalPlataforma = 26;
+                        nomeFaixaPreco = "Frete Grátis Extra (Acima de R$ 200)";
+                    }
                 } else {
-                  custoOperacionalPlataforma = 26;
+                    // REGRA PADRÃO (Sem frete grátis)
+                    comissaoPctReal = taxaMLPct;
+                    custoOperacionalPlataforma = 4;
+                    nomeFaixaPreco = "Taxa Padrão Shopee";
                 }
+                
                 comissaoVenda = p * comissaoPctReal;
-              } 
-              else if (platform === 'ML') {
+
+              } else if (platform === 'ML') {
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
@@ -270,7 +283,7 @@
                   lucroLiq: lucroAtual,
                   lucroLiqPct: lucroAtualPct * 100,
                   margemUsada: comissaoPctReal * 100,
-                  faixaAplicada: platform === 'ML' ? `${nomeFaixaPeso} | ${nomeFaixaPreco}` : 'Taxa Base Shopee'
+                  faixaAplicada: platform === 'ML' ? `${nomeFaixaPeso} | ${nomeFaixaPreco}` : nomeFaixaPreco
                 };
                 break;
               }
@@ -286,7 +299,7 @@
           useEffect(() => {
             setResultado(null);
             setErro(null);
-          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoInput, isPremium, ofereceFreteGratis]);
+          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoInput, isPremium, ofereceFreteGratis, isShopeeFreeShipping]);
 
           const theme = {
             label: `text-[10px] md:text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`,
@@ -333,11 +346,9 @@
                                   </p>
                               </div>
                               {authError && <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2"><i className="ph ph-warning-circle text-lg"></i>{authError}</div>}
-                              
                               <button type="submit" disabled={isLoading} className={`w-full py-3.5 md:py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl font-bold shadow-lg transition-all text-sm md:text-base flex justify-center items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}>
                                   {isLoading ? <i className="ph ph-spinner animate-spin text-xl"></i> : 'Entrar no Sistema'}
                               </button>
-
                           </form>
                       </div>
                   </div>
@@ -407,13 +418,27 @@
                       </div>
 
                       <div className="space-y-0.5">
-                        <label className={theme.label}>{platform === 'ML' ? 'Taxa Categoria' : 'Comissão Shopee'}</label>
+                        <label className={theme.label}>{platform === 'ML' ? 'Taxa Categoria (%)' : 'Taxa Categoria / Base (%)'}</label>
                         <div className="relative">
                           <input type="text" value={taxaMarketplace} onChange={handlePercentChange(setTaxaMarketplace)} placeholder="14" className={`${theme.input} pl-3 pr-8`} />
                           <i className={`ph-bold ph-percent text-base absolute right-3 top-2.5 ${theme.icon}`}></i>
                         </div>
                       </div>
 
+                      {/* --- SEÇÃO SHOPEE --- */}
+                      {platform === 'SHOPEE' && (
+                        <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
+                            <div className="space-y-0.5">
+                                <label className={theme.label}>Programa Frete Grátis Extra</label>
+                                <div className={`flex border rounded-xl p-1 ${isDarkMode ? 'bg-[#030712] border-slate-800' : 'bg-white border-slate-200'}`}>
+                                    <button type="button" onClick={() => setIsShopeeFreeShipping(false)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 flex justify-center items-center gap-1 ${!isShopeeFreeShipping ? 'bg-orange-500 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}><i className={!isShopeeFreeShipping ? "ph-fill ph-check-circle" : "ph ph-circle"}></i> Não Participo (14%)</button>
+                                    <button type="button" onClick={() => setIsShopeeFreeShipping(true)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 flex justify-center items-center gap-1 ${isShopeeFreeShipping ? 'bg-orange-500 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}><i className={isShopeeFreeShipping ? "ph-fill ph-truck" : "ph ph-truck"}></i> Sim (Regra 2026)</button>
+                                </div>
+                            </div>
+                        </div>
+                      )}
+
+                      {/* --- SEÇÃO MERCADO LIVRE --- */}
                       {platform === 'ML' && (
                         <>
                           <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
@@ -497,7 +522,10 @@
 
                             {resultado.taxaFixa > 0 && (
                                 <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}>
-                                    <span className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{platform === 'SHOPEE' ? 'Taxa Fixa:' : 'Tarifa Fixa:'}</span>
+                                    <span className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                        {platform === 'SHOPEE' ? `Coparticipação Frete:` : 'Tarifa Fixa:'}
+                                        {platform === 'SHOPEE' && <span className="text-[9px] text-slate-500 block truncate max-w-[100px]" title={resultado.faixaAplicada}>({resultado.faixaAplicada})</span>}
+                                    </span>
                                     <span className={`font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span>
                                 </div>
                             )}
@@ -535,7 +563,7 @@
                   </div>
                 </div>
 
-                <p className={`text-center text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>Ferramenta atualizada com as novas Tarifas do ML e Shopee de 2026.</p>
+                <p className={`text-center text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>Ferramenta atualizada com as novas Tarifas e Regras de Frete 2026.</p>
 
               </div>
             </div>
