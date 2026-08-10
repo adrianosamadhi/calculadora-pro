@@ -105,9 +105,6 @@
           // Toggles ML
           const [isPremium, setIsPremium] = useState(false);
           const [ofereceFreteGratis, setOfereceFreteGratis] = useState(false);
-          
-          // Toggle Shopee
-          const [isShopeeFreeShipping, setIsShopeeFreeShipping] = useState(true);
 
           const [showCubagem, setShowCubagem] = useState(false);
           const [dimComprimento, setDimComprimento] = useState('');
@@ -178,9 +175,7 @@
             const emb = parseCurrency(embalagem);
             const impostoPct = parsePercent(imposto) / 100;
             const lucroPct = parsePercent(lucroDesejado) / 100;
-            
-            // Pega a taxa do input SOMENTE se for ML. Se for Shopee, usa 14% base sempre.
-            const taxaMLPct = platform === 'ML' ? (parsePercent(taxaMarketplace) / 100) : 0.14; 
+            const taxaMLPct = parsePercent(taxaMarketplace) / 100;
             const peso = parseWeight(pesoInput);
 
             if (custo === 0) {
@@ -205,35 +200,27 @@
               let nomeFaixaPeso = "";
 
               if (platform === 'SHOPEE') {
-                if (isShopeeFreeShipping) {
-                    // TABELA DE REGRAS SHOPEE (Com Frete Grátis)
-                    if (p <= 79.99) {
-                        comissaoPctReal = 0.20; // 20%
-                        custoOperacionalPlataforma = 4;
-                        nomeFaixaPreco = "Frete Grátis Extra (Até R$ 79,99)";
-                    } else if (p <= 99.99) {
-                        comissaoPctReal = 0.14; // Cai pros 14%
-                        custoOperacionalPlataforma = 16;
-                        nomeFaixaPreco = "Frete Grátis Extra (R$ 80 a R$ 99,99)";
-                    } else if (p <= 199.99) {
-                        comissaoPctReal = 0.14;
-                        custoOperacionalPlataforma = 20;
-                        nomeFaixaPreco = "Frete Grátis Extra (R$ 100 a R$ 199,99)";
-                    } else {
-                        comissaoPctReal = 0.14;
-                        custoOperacionalPlataforma = 26;
-                        nomeFaixaPreco = "Frete Grátis Extra (Acima de R$ 200)";
-                    }
-                } else {
-                    // REGRA PADRÃO (Sem frete grátis)
-                    comissaoPctReal = 0.14;
+                // TABELA OFICIAL SHOPEE CNPJ 2026 (AUTOMÁTICA)
+                if (p <= 79.99) {
+                    comissaoPctReal = 0.20; // 20%
                     custoOperacionalPlataforma = 4;
-                    nomeFaixaPreco = "Taxa Padrão Shopee";
+                    nomeFaixaPreco = "Shopee CNPJ (Até R$ 79,99)";
+                } else if (p <= 99.99) {
+                    comissaoPctReal = 0.14; // 14%
+                    custoOperacionalPlataforma = 16;
+                    nomeFaixaPreco = "Shopee CNPJ (R$ 80 a R$ 99,99)";
+                } else if (p <= 199.99) {
+                    comissaoPctReal = 0.14;
+                    custoOperacionalPlataforma = 20;
+                    nomeFaixaPreco = "Shopee CNPJ (R$ 100 a R$ 199,99)";
+                } else {
+                    comissaoPctReal = 0.14;
+                    custoOperacionalPlataforma = 26;
+                    nomeFaixaPreco = "Shopee CNPJ (Acima de R$ 200)";
                 }
                 
                 comissaoVenda = p * comissaoPctReal;
                 
-                // Validação para não quebrar a conta da Shopee
                 const baseShopee = impostoPct + lucroPct + comissaoPctReal;
                 if (baseShopee >= 1) {
                     setErro("A soma das margens não pode ser 100% ou mais.");
@@ -244,7 +231,6 @@
                 comissaoPctReal = taxaMLPct + (isPremium ? 0.05 : 0);
                 comissaoVenda = p * comissaoPctReal;
                 
-                // Validação para não quebrar a conta do ML
                 const baseML = impostoPct + lucroPct + comissaoPctReal;
                 if (baseML >= 1) {
                     setErro("A soma das margens não pode ser 100% ou mais.");
@@ -307,7 +293,7 @@
           useEffect(() => {
             setResultado(null);
             setErro(null);
-          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoInput, isPremium, ofereceFreteGratis, isShopeeFreeShipping]);
+          }, [platform, custoProduto, embalagem, imposto, lucroDesejado, taxaMarketplace, pesoInput, isPremium, ofereceFreteGratis]);
 
           const theme = {
             label: `text-[10px] md:text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`,
@@ -392,7 +378,9 @@
                     
                     <div className={`mb-2 p-1.5 rounded-lg flex items-center gap-2 border transition-colors ${platform === 'ML' ? isDarkMode ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-300' : 'bg-yellow-50 border-yellow-200 text-yellow-800' : isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-800'}`}>
                       <i className="ph-fill ph-info text-base shrink-0"></i>
-                      <p className="text-[11px] md:text-xs leading-snug"><strong>Automação:</strong> Digite os custos abaixo e descubra o preço exato.</p>
+                      <p className="text-[11px] md:text-xs leading-snug">
+                        <strong>Automação:</strong> {platform === 'SHOPEE' ? 'Calculando automaticamente pela Tabela Oficial Shopee CNPJ 2026.' : 'Digite os custos abaixo e descubra o preço exato.'}
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -425,7 +413,7 @@
                         </div>
                       </div>
 
-                      {/* CAIXA DE TAXA AGORA SÓ APARECE NO ML */}
+                      {/* TAXA CATEGORIA APENAS NO MERCADO LIVRE */}
                       {platform === 'ML' && (
                         <div className="space-y-0.5 animate-fade-in">
                           <label className={theme.label}>Taxa Categoria (%)</label>
@@ -433,19 +421,6 @@
                             <input type="text" value={taxaMarketplace} onChange={handlePercentChange(setTaxaMarketplace)} placeholder="14" className={`${theme.input} pl-3 pr-8`} />
                             <i className={`ph-bold ph-percent text-base absolute right-3 top-2.5 ${theme.icon}`}></i>
                           </div>
-                        </div>
-                      )}
-
-                      {/* --- SEÇÃO SHOPEE --- */}
-                      {platform === 'SHOPEE' && (
-                        <div className={`md:col-span-2 space-y-1.5 p-2.5 rounded-2xl border animate-fade-in ${isDarkMode ? 'border-slate-800 bg-[#0f172a]' : 'border-slate-200 bg-slate-50'}`}>
-                            <div className="space-y-0.5">
-                                <label className={theme.label}>Programa Frete Grátis Extra</label>
-                                <div className={`flex border rounded-xl p-1 ${isDarkMode ? 'bg-[#030712] border-slate-800' : 'bg-white border-slate-200'}`}>
-                                    <button type="button" onClick={() => setIsShopeeFreeShipping(false)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 flex justify-center items-center gap-1 ${!isShopeeFreeShipping ? 'bg-orange-500 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}><i className={!isShopeeFreeShipping ? "ph-fill ph-check-circle" : "ph ph-circle"}></i> Não Participo (14%)</button>
-                                    <button type="button" onClick={() => setIsShopeeFreeShipping(true)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 flex justify-center items-center gap-1 ${isShopeeFreeShipping ? 'bg-orange-500 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}><i className={isShopeeFreeShipping ? "ph-fill ph-truck" : "ph ph-truck"}></i> Sim (Regra 2026)</button>
-                                </div>
-                            </div>
                         </div>
                       )}
 
@@ -534,7 +509,7 @@
                             {resultado.taxaFixa > 0 && (
                                 <div className={`flex justify-between items-center border-b pb-1 ${theme.resultItemBorder}`}>
                                     <span className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                                        {platform === 'SHOPEE' ? `Coparticipação Frete:` : 'Tarifa Fixa:'}
+                                        {platform === 'SHOPEE' ? `Taxa Fixa:` : 'Tarifa Fixa:'}
                                         {platform === 'SHOPEE' && <span className="text-[9px] text-slate-500 block truncate max-w-[100px]" title={resultado.faixaAplicada}>({resultado.faixaAplicada})</span>}
                                     </span>
                                     <span className={`font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>- R$ {resultado.taxaFixa.toFixed(2).replace('.', ',')}</span>
@@ -574,7 +549,7 @@
                   </div>
                 </div>
 
-                <p className={`text-center text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>Ferramenta atualizada com as novas Tarifas e Regras de Frete 2026.</p>
+                <p className={`text-center text-[10px] ${isDarkMode ? 'text-slate-600' : 'text-slate-500'}`}>Ferramenta atualizada com a Tabela Oficial Shopee CNPJ 2026.</p>
 
               </div>
             </div>
